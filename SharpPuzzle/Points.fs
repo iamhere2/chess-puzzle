@@ -61,3 +61,20 @@ type Point =
     /// Проверка четности
     member p.IsOdd = IsOdd p
 
+
+// Точки, смежные с данной (но не совпадающие с ней) в указанном списке точек
+let inline public AdjacentPoints (points: 'a list) (point: 'a when 'a: (member X: int) and 'a: (member Y: int) and 'a : equality) =
+    points |> List.filter (fun p -> p <> point && p % point)
+
+// Кластер смежности - точки, смежные друг с другом, начиная с указанной в указанном списке точек
+let inline public AdjacentCluster (points) (startPoint) =
+    let rec nextLayers (rest) (prevLayer) =
+        let nextLayer = prevLayer |> List.collect (AdjacentPoints rest) |> List.distinct
+        let nextRest = rest |> List.except nextLayer
+        nextLayer @ nextLayers nextRest nextLayer
+    startPoint :: nextLayers points (points |> List.except [startPoint])
+    
+
+
+    
+

@@ -8,38 +8,20 @@ open Puzzle
 open BoardPrinter
 open FigureParser
 
-
-let startFigures : Figure list = 
-    [ 
-        Figure.FromCoords Black [ (1, 0); (2, 0); (3, 0); (4, 0) ]
-        Figure.FromCoords White [ (1, 0); (1, 1); (0, 1) ]
-        Figure.FromCoords Black [ (1, 0); (0, 1); (-1, 0); (0, -1) ]
-    ]
-
 let allFigiresPicStr = """
-   BW   BWBW  WBW  WBWB    W      B
-   WB   W      W   B  W    BWBWBWBW
+                                 B                         B    BW    W       WBWB   
+   BW   BWBW  BWB  BWB           W      B     BWB   BWB   BWB    BW   BWB     B      
+   WB   W      B   W W  BWBWB  BWB    WBWB   BW      BW    B      B    B             
+
    """
 
 
 [<EntryPoint>]
 let main _ = 
     
-    let b:BoardState = 
-        { 
-            Figures = 
-            [ 
-                { Origin = { X = 2; Y = 2 }; Figure = startFigures.[0] } 
-                { Origin = { X = 2; Y = 4 }; Figure = startFigures.[1] } 
-                { Origin = { X = 6; Y = 5 }; Figure = startFigures.[2] } 
-            ] 
-        }
+    let figures = ParseFiguresPicStr(allFigiresPicStr);
 
-    Print b
-
-    Console.WriteLine()
-
-    let newFigures = ParseFiguresPicStr(allFigiresPicStr);
+    Console.WriteLine(String.Format("Figures ({0}):", figures.Length))
 
     let printFigure f = 
         let b:BoardState = 
@@ -52,9 +34,7 @@ let main _ =
         Print b
         Console.WriteLine()
 
-    newFigures |> List.iter printFigure 
-
-
+    figures |> List.iter printFigure 
 
     Console.ReadLine() |> ignore
 
