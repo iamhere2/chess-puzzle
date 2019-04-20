@@ -1,7 +1,7 @@
 ﻿module Points
 
 
-/// Функция проверяет что две структуры с координатами (любого типа) являются 4-смежными
+/// Функция проверяет что две структуры с координатами (любого типа) являются 4-смежными и не совпадающими
 let inline public IsAdjacent a b =
         let a_X = (^a : (member X : int) a)
         let a_Y = (^a : (member Y : int) a)
@@ -9,10 +9,10 @@ let inline public IsAdjacent a b =
         let b_Y = (^b : (member Y : int) b)
         let dx = abs (a_X - b_X)
         let dy = abs (a_Y - b_Y)
-        dx + dy <= 1 
+        dx + dy = 1
 
 
-/// Бинарный оператор проверяет что две структуры с координатами (любого типа) являются 4-смежными
+/// Бинарный оператор проверяет что две структуры с координатами (любого типа) являются 4-смежными и не совпадающими
 let inline public (%) a b = IsAdjacent a b 
 
 
@@ -23,7 +23,7 @@ let inline public IsOdd x =
         ((p_X + p_Y) &&& 1) = 1
 
 
-/// Функция смещает структуру с координатами (любого типа) 
+/// Функция смещает структуру с координатами (любого типа) если в ней есть соответствующий метод
 let inline public Shift (dx, dy) x =
         (^p : (member Shift : int * int -> ^p) (x, dx, dy))
 
@@ -62,17 +62,17 @@ type Point =
     member p.IsOdd = IsOdd p
 
 
-// Точки, смежные с данной (но не совпадающие с ней) в указанном списке точек
-let inline public AdjacentPoints (points: 'a list) (point: 'a when 'a: (member X: int) and 'a: (member Y: int) and 'a : equality) =
-    points |> List.filter (fun p -> p <> point && p % point)
+// "Точки", смежные с данной (но не совпадающие с ней) в указанном списке "точек" (любых структур с координатами)
+let inline public Adjacent list origin =
+    list |> List.filter (IsAdjacent origin)
 
-// Кластер смежности - точки, смежные друг с другом, начиная с указанной в указанном списке точек
-let inline public AdjacentCluster (points) (startPoint) =
-    let rec nextLayers (rest) (prevLayer) =
-        let nextLayer = prevLayer |> List.collect (AdjacentPoints rest) |> List.distinct
+// Кластер смежности - "точки", смежные друг с другом, начиная с указанной в указанном списке "точек" (любых структур с координатами)
+let inline public AdjacentCluster list origin =
+    let rec nextLayers rest prevLayer =
+        let nextLayer = prevLayer |> List.collect (Adjacent rest) |> List.distinct
         let nextRest = rest |> List.except nextLayer
         nextLayer @ nextLayers nextRest nextLayer
-    startPoint :: nextLayers points (points |> List.except [startPoint])
+    origin :: nextLayers list (list |> List.except [origin])
     
 
 
