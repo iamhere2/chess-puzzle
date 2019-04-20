@@ -56,7 +56,7 @@ type Point =
     member p.IsAt(x, y) = (p.X = x) && (p.Y = y)
 
     /// Возвращает (новую) точку со сдвигом
-    member p.Shift (dx, dy) = { p with X = p.X + dx; Y = p.Y + dy }
+    member p.Shift (dx, dy) = { X = p.X + dx; Y = p.Y + dy }
 
     /// Проверка четности
     member p.IsOdd = IsOdd p

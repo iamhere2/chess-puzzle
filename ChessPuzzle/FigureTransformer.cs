@@ -46,20 +46,11 @@ namespace ChessPuzzle
                 figure.Cells.Skip(1).Select(c => pointTransform(c.RelativePoint)));
         }
 
-        private static Point RotateRightPoint(Point p)
-        {
-            return Point.Of(p.Y, -p.X);
-        }
+        private static Point RotateRightPoint(Point p) => Point.Of(p.Y, -p.X);
 
-        private static Figure FlipX(Figure f)
-        {
-            return Transform(f, FlipXPoint);
-        }
+        private static Figure FlipX(Figure f) => Transform(f, FlipXPoint);
 
-        private static Point FlipXPoint(Point p)
-        {
-            return Point.Of(-p.X, p.Y);
-        }
+        private static Point FlipXPoint(Point p) => Point.Of(-p.X, p.Y);
 
         class FigureLinearTransitionComparer : IEqualityComparer<Figure>
         {

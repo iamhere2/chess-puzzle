@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -18,7 +17,7 @@ namespace ChessPuzzle
             Contract.Requires(otherCellPoints.Any());
             Contract.Ensures(Cells != null);
 
-            _colorOfOriginCell = colorOfOriginCell;
+            ColorOfOriginCell = colorOfOriginCell;
             Cells = new ReadOnlyCollection<FigureCell>(CalculateCells(colorOfOriginCell, otherCellPoints));
         }
 
@@ -28,12 +27,7 @@ namespace ChessPuzzle
         /// </remarks>
         public ReadOnlyCollection<FigureCell> Cells { get; private set; }
 
-        public Color ColorOfOriginCell
-        {
-            get { return _colorOfOriginCell; }
-        }
-
-        private readonly Color _colorOfOriginCell;
+        public Color ColorOfOriginCell { get; }
 
         private static IList<FigureCell> CalculateCells(Color colorOfOriginCell, IEnumerable<Point> otherCellPoints)
         {
@@ -47,9 +41,7 @@ namespace ChessPuzzle
                 .ToList();
         }
 
-        private static Color CalculateColor(Color colorOfOriginCell, Point relativePoint)
-        {
-            return relativePoint.IsOdd ? colorOfOriginCell.GetInverted() : colorOfOriginCell;
-        }
+        private static Color CalculateColor(Color colorOfOriginCell, Point relativePoint) => 
+            relativePoint.IsOdd ? colorOfOriginCell.GetInverted() : colorOfOriginCell;
     }
 }

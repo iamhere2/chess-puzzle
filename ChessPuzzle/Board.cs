@@ -13,34 +13,18 @@ namespace ChessPuzzle
 
         public struct Placement
         {
-            public Figure Figure
-            {
-                get { return _figure; }
-            }
+            public Figure Figure { get; }
 
-            private readonly Figure _figure;
+            public Point Point { get; }
 
-            public Point Point
-            {
-                get { return _point; }
-            }
-
-            private readonly Point _point;
-
-            public int Num
-            {
-                get { return _num; }
-            }
-
-            private readonly int _num;
-
+            public int Num { get; }
 
             public Placement(Figure figure, Point point, int num)
             {
                 Contract.Requires(figure != null);
-                _figure = figure;
-                _num = num;
-                _point = point;
+                Figure = figure;
+                Num = num;
+                Point = point;
             }
 
             public Color? GetColor(Point point)
@@ -81,7 +65,7 @@ namespace ChessPuzzle
             return _hasCellCache.Contains(p);
         }
 
-        private HashSet<Point> _hasCellCache;
+        private HashSet<Point>? _hasCellCache = null;
 
         public IEnumerable<Placement> Figures { get; private set; }
 
@@ -134,15 +118,11 @@ namespace ChessPuzzle
             return CalculateOddCellsColor(ff.Point, ff.GetColor(ff.Point).Value);
         }
 
-        private static Color CalculateOddCellsColor(Point probePoint, Color probeColor)
-        {
-            return probePoint.IsOdd ? probeColor : probeColor.GetInverted();
-        }
+        private static Color CalculateOddCellsColor(Point probePoint, Color probeColor) 
+            => probePoint.IsOdd ? probeColor : probeColor.GetInverted();
 
-        public Color? GetColor(Point point)
-        {
-            return GetPointInfo(point).Color;
-        }
+        public Color? GetColor(Point point) 
+            => GetPointInfo(point).Color;
 
         public PointInfo GetPointInfo(Point point)
         {
@@ -156,10 +136,8 @@ namespace ChessPuzzle
             return PointInfo.Empty;
         }
 
-        public static Board CreateEmpty()
-        {
-            return new Board(new ReadOnlyCollection<Placement>(new Placement[] {}));
-        }
+        public static Board CreateEmpty() => 
+            new Board(new ReadOnlyCollection<Placement>(new Placement[] { }));
 
         public static Board CreateByPlacementNewFigure(Board prev, Figure figure, Point point)
         {
@@ -181,24 +159,14 @@ namespace ChessPuzzle
 
         public struct PointInfo
         {
-            public Placement? Placement
-            {
-                get { return _placement; }
-            }
+            public Placement? Placement { get; }
 
-            private readonly Placement? _placement;
-
-            public Color? Color
-            {
-                get { return _color; }
-            }
-
-            private readonly Color? _color;
+            public Color? Color { get; }
 
             public PointInfo(Placement? placement, Color? color)
             {
-                _placement = placement;
-                _color = color;
+                Placement = placement;
+                Color = color;
             }
 
             public static readonly PointInfo Empty = new PointInfo(null, null);

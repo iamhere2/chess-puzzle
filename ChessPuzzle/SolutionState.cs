@@ -10,24 +10,30 @@ namespace ChessPuzzle
     {
         public class Decision
         {
-            public Figure SelectedFigure { get; set; }
+            public Decision(Figure selectedFigure, Figure transformedFigure, Point placementPoint)
+            {
+                SelectedFigure = selectedFigure;
+                TransformedFigure = transformedFigure;
+                PlacementPoint = placementPoint;
+            }
+            public Figure SelectedFigure { get; }
 
-            public Figure TransformedFigure { get; set; }
+            public Figure TransformedFigure { get; }
 
-            public Point PlacementPoint { get; set; }
+            public Point PlacementPoint { get; }
         }
 
         public Board Board { get; private set; }
 
         public bool IsDecisionsCalculated { get; private set; }
 
-        public Queue<Decision> PossibleDecisions { get; private set; }
+        public Queue<Decision>? PossibleDecisions { get; private set; }
 
         public IList<Figure> RestFigures { get; private set; }
 
         private Dictionary<Figure, IList<Figure>> FigureTransformations { get; set; }
 
-        public bool IsFinal { get { return !RestFigures.Any(); } }
+        public bool IsFinal => !RestFigures.Any();
 
         private SolutionState(Board board, IList<Figure> restFigures, Dictionary<Figure, IList<Figure>> figureTransformations)
         {
@@ -40,16 +46,11 @@ namespace ChessPuzzle
             FigureTransformations = figureTransformations;
         }
 
-        public static SolutionState CreateInitial(IList<Figure> figures)
-        {
-            return new SolutionState(Board.CreateEmpty(), figures, GetFigureTransformations(figures));
-        }
+        public static SolutionState CreateInitial(IList<Figure> figures) 
+            => new SolutionState(Board.CreateEmpty(), figures, GetFigureTransformations(figures));
 
-        private static Dictionary<Figure, IList<Figure>> GetFigureTransformations(IEnumerable<Figure> figures)
-        {
-            return
-                figures.ToDictionary(f => f, FigureTransformer.GetTransformations);
-        }
+        private static Dictionary<Figure, IList<Figure>> GetFigureTransformations(IEnumerable<Figure> figures) 
+            => figures.ToDictionary(f => f, FigureTransformer.GetTransformations);
 
         public SolutionState CreateNextState(Decision decision)
         {
@@ -98,12 +99,7 @@ namespace ChessPuzzle
                         if (Board.IsValidPlacement(transformedFigure, placementPoint))
                         {
                             PossibleDecisions.Enqueue(
-                                new Decision
-                                    {
-                                        SelectedFigure = restFigure,
-                                        TransformedFigure = transformedFigure,
-                                        PlacementPoint = placementPoint
-                                    });
+                                new Decision(selectedFigure: restFigure, transformedFigure, placementPoint));
                         }
                     }
                 }

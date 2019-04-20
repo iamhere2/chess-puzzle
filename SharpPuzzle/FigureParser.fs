@@ -1,7 +1,5 @@
 ﻿module FigureParser
 
-open System
-
 open Colors
 open Points
 open Cubes
@@ -30,11 +28,11 @@ let ParseFiguresPicStr (ps : string) : Figure list =
         res
 
     // Парсим набор строк в набор точек
-    let seps = "\r\n".ToCharArray() 
-    let lines = ps.Split(seps, StringSplitOptions.RemoveEmptyEntries)
+    let lines = ps.Split('\r', '\n')
     let pointList =
         lines
         |> List.ofArray 
+        |> List.filter (fun (s) -> s.Length > 0)
         |> List.indexed
         |> List.map parseLine
         |> List.fold List.append [] 

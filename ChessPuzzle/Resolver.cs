@@ -14,7 +14,7 @@ namespace ChessPuzzle
 
         public Stack<SolutionState> States { get; private set; }
 
-        public SolutionState FinalState { get; set; }
+        public SolutionState? FinalState { get; set; }
 
         public bool SearchSolution(SolutionState initialState)
         {
@@ -82,12 +82,9 @@ namespace ChessPuzzle
             }
         }
 
-        private void OnStateEnter(SolutionState state)
-        {
-            if (StateEnter != null)
-                StateEnter(this, new StateEventArgs(state));
-        }
-          
+        private void OnStateEnter(SolutionState state) 
+            => StateEnter?.Invoke(this, new StateEventArgs(state));
+
         public event EventHandler<StateEventArgs> StateEnter;
 
         private void ClearStates()

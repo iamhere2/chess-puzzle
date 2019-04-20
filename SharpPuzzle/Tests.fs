@@ -52,6 +52,6 @@ let ``Парсер фигур``() =
     figures.[2].Points.Length =! 7
 
     let f0 = figures.[0]
-    f0.ColorAt {X = 0; Y = 0} =! Some White
-    f0.ColorAt {X = 1; Y = 0} =! Some Black
-    f0.ColorAt {X = 2; Y = 0} =! Some White
+    f0.ColorAt { X = 0; Y = 0 } =! Some White
+    f0.ColorAt { X = 1; Y = 0 } =! Some Black
+    f0.ColorAt { X = 2; Y = 0 } =! Some White

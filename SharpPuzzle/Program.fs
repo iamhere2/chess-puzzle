@@ -1,12 +1,12 @@
 ﻿module Program
 
+open System
+
 open Colors
 open Figures
 open Puzzle
 open BoardPrinter
-open System
 open FigureParser
-open System.Reflection
 
 
 let startFigures : Figure list = 

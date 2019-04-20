@@ -4,10 +4,7 @@ namespace ChessPuzzle
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            SolvePuzzle();
-        }
+        static void Main() => SolvePuzzle();
 
         private static void SolvePuzzle()
         {
@@ -49,7 +46,7 @@ namespace ChessPuzzle
             bool found = r.SearchSolution(initialState);
 
             Console.Clear();
-            if (found)
+            if (found && r.FinalState != null)
             {
                 Console.WriteLine("Resolved :)\r\nStates tested:{0}\r\nTime:{1}", stateCounter, DateTime.Now - startTime);
                 BoardPrinter.Print(r.FinalState.Board);
