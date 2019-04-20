@@ -16,10 +16,15 @@ type Figure =
 
     } with
 
-    /// Обычный конструктор
-    // TODO: Валидация смежности, нормализация координат и порядка точек
-    static member FromPoints originColor points = 
-        { OriginColor = originColor; Points = Point.Zero :: points |> List.distinct } 
+    /// Фабрика фигур из точек и цвета
+    // TODO: Валидация смежности, нормализация координат и порядка цветов/точек
+    static member FromPoints firstPointColor points = 
+        { OriginColor = firstPointColor; Points = points |> List.distinct } 
+
+    /// Фабрика фигур из кубиков
+    // TODO: Валидация смежности, нормализация координат и порядка цветов/точек
+    static member FromCubes (cubes: Cube list) = 
+        Figure.FromPoints cubes.Head.Color (cubes |> List.map (fun c -> c.Point))
 
     /// Компактный конструктор из координат
     static member FromCoords color coords = 

@@ -67,6 +67,7 @@ let ParseFiguresPicStr (ps : string) : Figure list =
     // Преобразуем в фигуры, попутно минимизируя координаты
 
     // ...и проверяя корректность указания цвета
+    // TODO: перенести эти проверки в фабрику фигуры
     let validateColors pcl : Cube list = 
         // Корректный цвет совпадает с первой точкой при четной разнице координат
         // и противоположен при нечетной
@@ -83,27 +84,15 @@ let ParseFiguresPicStr (ps : string) : Figure list =
         pcl |> List.map validated
 
     // ...и еще проверяя смежность всех точек, получившихся в результате
+    // TODO: перенести эти проверки в фабрику фигуры
     let validateAdjacement (cl : Cube list) : Cube list = 
-        // Начав с первой точки будем рекурсивно обходить смежные, считая непосещенные точки
-        let rec adjCountRec (allPoints: Point list) (startPoint:Point) (exceptPoints:Point list) : int =
-            let nextLayer = 
-                allPoints
-                |> List.filter (fun p -> p % startPoint && p <> startPoint)
-                |> List.except exceptPoints
-            let count = if nextLayer.Length = 0 then 0 
-                        else nextLayer.Length + (adjCountRec allPoints nextLayer.Head (startPoint :: exceptPoints @ nextLayer))
-            count
-        let points = cl |> List.map (fun c -> c.Point)
-        let partCount = adjCountRec points points.Head []
-        if partCount = cl.Length then cl
-                                 else failwithf "Invalid adjacement in figure points: %i of %i. %A" partCount points.Length points
+        let cluster = AdjacentCluster cl cl.Head
+        if cluster.Length = cl.Length then cl
+        else failwithf "Non-adjacement figure: %i of %i: [%A] of [%A]" cluster.Length cl.Length cluster cl
 
     // ...получаем результирующий список фигур
-    let createFigure (cls:Cube list) : Figure = 
-        Figure.FromPoints cls.Head.Color (cls |> List.map (fun pc -> pc.Point))
-
     let figures =
-        pointClusters |> List.map (ShiftToZero >> validateColors >> validateAdjacement >> createFigure)
+        pointClusters |> List.map (ShiftToZero >> validateColors >> validateAdjacement >> Figure.FromCubes)
 
     figures
 

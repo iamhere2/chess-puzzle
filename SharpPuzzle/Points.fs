@@ -62,17 +62,20 @@ type Point =
     member p.IsOdd = IsOdd p
 
 
-// "Точки", смежные с данной (но не совпадающие с ней) в указанном списке "точек" (любых структур с координатами)
+/// "Точки", смежные с данной (но не совпадающие с ней) в указанном списке "точек" (любых структур с координатами)
 let inline public Adjacent list origin =
     list |> List.filter (IsAdjacent origin)
 
-// Кластер смежности - "точки", смежные друг с другом, начиная с указанной в указанном списке "точек" (любых структур с координатами)
+/// Кластер смежности - "точки", смежные друг с другом, начиная с указанной в указанном списке "точек" (любых структур с координатами)
 let inline public AdjacentCluster list origin =
     let rec nextLayers rest prevLayer =
-        let nextLayer = prevLayer |> List.collect (Adjacent rest) |> List.distinct
-        let nextRest = rest |> List.except nextLayer
-        nextLayer @ nextLayers nextRest nextLayer
-    origin :: nextLayers list (list |> List.except [origin])
+        if List.isEmpty rest
+        then [] 
+        else
+            let nextLayer = prevLayer |> List.collect (Adjacent rest) |> List.except prevLayer |> List.distinct
+            let nextRest = rest |> List.except nextLayer
+            nextLayer @ nextLayers nextRest nextLayer
+    origin :: nextLayers (list |> List.except [origin]) [origin]
     
 
 
