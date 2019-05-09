@@ -2,9 +2,11 @@
 /// Для производительности многое объявлено как inline
 module Points
 
+open System.Runtime.CompilerServices
+
 /// Просто точка с относительными координатами и больше без ничего
 /// Структура-запись, все комбинации значений полей - валидны
-[<Struct>]
+[<Struct; IsReadOnly>]
 type Point = 
     { 
         X: int 
@@ -33,14 +35,18 @@ let inline IsAdjacent a b =
     let dy = abs (a.Y - b.Y)
     dx + dy = 1
 
+
 /// Бинарный оператор проверки смежности точек
 let inline (%) a b = IsAdjacent a b 
+
 
 /// Определяет, четная или нечетная сумма координат - для "шашечек"
 let inline IsOdd (p : Point) = p.IsOdd
 
+
 /// Сдвигает точку
 let inline Shift (dx, dy) (p : Point) = p.Shift (dx, dy)
+
 
 /// Смещает набор точек к началу координат (минимизирует значения координат)
 let inline ShiftToZero points =
@@ -50,14 +56,17 @@ let inline ShiftToZero points =
         let shiftToMin p = Shift (-minX, -minY) p
         points |> List.map shiftToMin
 
+
 /// Отбирает точки, смежные с данной (но не совпадающие с ней)
 let SelectAdjacentPoints points origin =
     points |> List.filter (IsAdjacent origin)
+
 
 /// Отбирает позиционированные элементы, смежные с данным
 let SelectAdjacent (items : 'a list) (pos : 'a -> Point) origin =
     let originPos = pos origin
     items |> List.filter (fun x -> (pos x) % originPos)
+
 
 /// Отбирает кластер смежности - позиционированные элементы, 
 /// смежные друг с другом, начиная с указанного элемента в указанном списке
@@ -73,6 +82,7 @@ let SelectAdjacentCluster (items : 'a list) (pos : 'a -> Point) (origin : 'a) =
             let nextRest = rest |> List.except nextLayer
             nextLayer @ nextLayersRec nextRest nextLayer
     origin :: nextLayersRec (items |> List.except [origin]) [origin]
+
 
 /// Кластеризация списка любых элементов, размещенных по координатам
 let rec ClusterizeByPosition (items : 'a list) (pos : 'a -> Point) =

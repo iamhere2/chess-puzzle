@@ -1,12 +1,15 @@
 ﻿/// Модуль работы с цветными кубиками
+/// Для производительности многое объявлено как inline
 module Cubes
+
+open System.Runtime.CompilerServices
 
 open Points
 open Colors
 
 /// Кубик с относительными координатами и цветом
 /// Структура-запись, любые комбинации значений полей валидны 
-[<Struct>]
+[<Struct; IsReadOnly>]
 type Cube = 
     { 
         Position: Point
@@ -14,8 +17,7 @@ type Cube =
     }
 
     /// Возвращает кубик с тем же цветом, но со сдвигом
-    member c.Shift (dx, dy) = 
-        Cube.At(Shift (dx, dy) c.Position, c.Color)
+    member c.Shift (dx, dy) = Cube.At(Shift (dx, dy) c.Position, c.Color)
 
     /// Проверяет, что кубик находится на указанных координатах
     member c.IsAt (x, y) = c.Position.IsAt(x, y)

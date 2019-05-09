@@ -1,5 +1,8 @@
 ﻿/// Модуль работы с фигурами из цветных кубиков
+/// Для производительности многое объявлено как inline
 module Figures
+
+open System.Runtime.CompilerServices
 
 open Points
 open Colors
@@ -10,7 +13,8 @@ open Cubes
 /// Разные повороты и отражения и смещения - это другие фигуры
 /// Хранятся только точки и цвет одного из кубиков, остальные кубики рассчитываются 
 ///   (??? а хорошо ли это ???)
-type Figure private (firstPointColor, points) = 
+[<Struct; IsReadOnly>]
+type Figure private (firstPointColor : Color, points : Point list) = 
 
     /// Цвет первого кубика
     member f.FirstCubeColor : Color = firstPointColor
@@ -54,7 +58,7 @@ type Figure private (firstPointColor, points) =
 
     /// Определяет цвет кубика
     /// Правильно использовать только для точек из списка фигуры, поэтому private
-    member private f.InternalColorAt (p : Point) = 
+    member inline private f.InternalColorAt (p : Point) = 
         if (IsOdd p) = (IsOdd f.Points.Head) then f.FirstCubeColor else f.FirstCubeColor.Inverted
 
 
@@ -75,7 +79,8 @@ type Figure private (firstPointColor, points) =
     // Все кубики фигуры
     // TODO: How to memoize it?
     member f.Cubes =
-        let cubeAt p = Cube.At(p, f.InternalColorAt p)
+        let this = f
+        let cubeAt p = Cube.At(p, this.InternalColorAt p)
         f.Points |> List.map cubeAt
 
 
