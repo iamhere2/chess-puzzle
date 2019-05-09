@@ -1,40 +1,62 @@
-﻿module Figures
+﻿/// Модуль работы с фигурами из цветных кубиков
+module Figures
 
 open Points
 open Colors
 open Cubes
 
-/// Фигура
-//  Разные повороты и отражения - это другие фигуры
-type Figure = 
-    {
-        /// Цвет начальной точки (0, 0)
-        OriginColor: Color         
+/// Фигура - набор смежных чередующихся по цвету кубиков
+/// Это уже не просто запись, а класс с закрытыми полями - не все сочетания данных валидны как фигура
+/// Разные повороты и отражения и смещения - это другие фигуры
+/// Хранятся только точки и цвет одного из кубиков, остальные кубики рассчитываются 
+///   (??? а хорошо ли это ???)
+type Figure private (firstPointColor, points) = 
 
-        /// Какие смежные точки (относительные координаты) входят в фигуру
-        Points: Point list    
+    /// Цвет первого кубика
+    member f.FirstCubeColor : Color = firstPointColor
 
-    } with
+    /// Какие смежные точки (относительные координаты) входят в фигуру
+    member f.Points : Point list = points
 
-    /// Фабрика фигур из точек и цвета
-    // TODO: Валидация смежности, нормализация координат и порядка цветов/точек
+
+    /// Внутренняя проверка смежности точек
+    static member private ValidateAdjacement (points : Point list) =
+        let cluster = SelectAdjacentCluster points id points.Head
+        if cluster.Length = points.Length then points else invalidArg "points" "Points of figure must be adjacement"
+
+
+    /// Создает фигуру из точек и цвета первой точки
+    // Все остальные методы создания должны вызывать этот, т.к. в нем есть все нужные проверки
     static member FromPoints firstPointColor points = 
-        { OriginColor = firstPointColor; Points = points |> List.distinct } 
+        let validatedNormalizedPoints = points |> List.distinct |> ShiftToZero |> Figure.ValidateAdjacement
+        Figure(firstPointColor, validatedNormalizedPoints)
 
-    /// Фабрика фигур из кубиков
-    // TODO: Валидация смежности, нормализация координат и порядка цветов/точек
+
+    /// Создает фигуру из кубиков
+    // Проверяет, что цвета кубиков чередуются верно
     static member FromCubes (cubes: Cube list) = 
-        Figure.FromPoints cubes.Head.Color (cubes |> List.map (fun c -> c.Point))
+        let headOdd = IsOdd cubes.Head.Position
+        let headColor = cubes.Head.Color
+        let validateCube c = 
+            if c = cubes.Head then c
+            elif ((IsOdd c.Position) = headOdd) = (c.Color = headColor) then c
+            else invalidArg "cubes" "Cubes in figure must has interleaved colors";
+        
+        let validatedCubes = cubes |> List.map validateCube
+        Figure.FromPoints validatedCubes.Head.Color (validatedCubes |> List.map PositionOf)
 
-    /// Компактный конструктор из координат
+
+    /// Создает фигуру по цвету первой точки и координатам точек
     static member FromCoords color coords = 
         let points = coords |> List.map Point.At 
         Figure.FromPoints color points
 
+
     /// Определяет цвет кубика
-    /// Правильно использовать только для точек из списка фигуры
+    /// Правильно использовать только для точек из списка фигуры, поэтому private
     member private f.InternalColorAt (p : Point) = 
-        if IsOdd p then f.OriginColor.Inverted else f.OriginColor
+        if (IsOdd p) = (IsOdd f.Points.Head) then f.FirstCubeColor else f.FirstCubeColor.Inverted
+
 
     /// Кубик по указанным относительным координатам или None
     // TODO: How to memoize it?
@@ -43,10 +65,12 @@ type Figure =
         | None -> None
         | Some c -> Some (Cube.At(p, c))
 
+
     /// Цвет по указанным относительным координатам или None
     // TODO: How to memoize it?
     member f.ColorAt (p: Point) : Color option =
         if List.contains p f.Points then Some (f.InternalColorAt p) else None
+
 
     // Все кубики фигуры
     // TODO: How to memoize it?
@@ -54,7 +78,8 @@ type Figure =
         let cubeAt p = Cube.At(p, f.InternalColorAt p)
         f.Points |> List.map cubeAt
 
+
     /// Число кубиков в фигуре
-    member f.CubeCount = f.Points.Length
+    member inline f.CubeCount = f.Points.Length
 
 

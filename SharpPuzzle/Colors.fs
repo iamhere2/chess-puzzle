@@ -1,11 +1,13 @@
 ﻿module Colors
 
-/// Цвет кубика
+/// Цвет (кубика)
 type Color =
     | Black
     | White
-    with
+
     /// Инверсия цвета
-    member c.Inverted = if c = Black then White else Black
+    member inline c.Inverted = if c = Black then White else Black
 
 
+/// Инверсия цвета
+let inline Invert (c: Color) = c.Inverted

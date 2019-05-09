@@ -1,83 +1,87 @@
-﻿module Points
-
-
-/// Функция проверяет что две структуры с координатами (любого типа) являются 4-смежными и не совпадающими
-let inline public IsAdjacent a b =
-        let a_X = (^a : (member X : int) a)
-        let a_Y = (^a : (member Y : int) a)
-        let b_X = (^b : (member X : int) b)
-        let b_Y = (^b : (member Y : int) b)
-        let dx = abs (a_X - b_X)
-        let dy = abs (a_Y - b_Y)
-        dx + dy = 1
-
-
-/// Бинарный оператор проверяет что две структуры с координатами (любого типа) являются 4-смежными и не совпадающими
-let inline public (%) a b = IsAdjacent a b 
-
-
-/// Функция определяет, четная или нечетная сумма координат - для "шашечек"
-let inline public IsOdd x =
-        let p_X = (^p : (member X : int) x)
-        let p_Y = (^p : (member Y : int) x)
-        ((p_X + p_Y) &&& 1) = 1
-
-
-/// Функция смещает структуру с координатами (любого типа) если в ней есть соответствующий метод
-let inline public Shift (dx, dy) x =
-        (^p : (member Shift : int * int -> ^p) (x, dx, dy))
-
-
-/// Функция смещает набор структур с координатами (любого типа) к началу координат (минимизирует значения координат)
-let inline public ShiftToZero pl =
-        // TODO: Определить minX и minY за один проход
-        let minX = pl |> List.map (fun p -> (^p : (member X : int) p)) |> List.min
-        let minY = pl |> List.map (fun p -> (^p : (member Y : int) p)) |> List.min
-        let shiftToMin p = Shift (-minX, -minY) p
-        pl |> List.map shiftToMin
-
+﻿/// Модуль работы с точками (парами координат)
+/// Для производительности многое объявлено как inline
+module Points
 
 /// Просто точка с относительными координатами и больше без ничего
+/// Структура-запись, все комбинации значений полей - валидны
 [<Struct>]
 type Point = 
     { 
         X: int 
         Y: int 
     } 
-    with
 
     /// Нулевая точка
-    static member Zero = { X = 0; Y = 0 }
+    static member inline Zero = { X = 0; Y = 0 }
 
     /// Преобразование из координат int * int в точку
-    static member At(x, y) = { X = x; Y = y }
+    static member inline At(x, y) = { X = x; Y = y }
 
     /// Проверка положения точки
-    member p.IsAt(x, y) = (p.X = x) && (p.Y = y)
+    member inline p.IsAt(x, y) = (p.X = x) && (p.Y = y)
 
     /// Возвращает (новую) точку со сдвигом
-    member p.Shift (dx, dy) = { X = p.X + dx; Y = p.Y + dy }
+    member inline p.Shift (dx, dy) = { X = p.X + dx; Y = p.Y + dy }
 
-    /// Проверка четности
-    member p.IsOdd = IsOdd p
+    /// Проверка четности суммы координат
+    member inline p.IsOdd = ((p.X + p.Y) &&& 1) = 1
 
 
-/// "Точки", смежные с данной (но не совпадающие с ней) в указанном списке "точек" (любых структур с координатами)
-let inline public Adjacent list origin =
-    list |> List.filter (IsAdjacent origin)
+/// Проверка того, что две точки 4-смежны (и не совпадают)
+let inline IsAdjacent a b =
+    let dx = abs (a.X - b.X)
+    let dy = abs (a.Y - b.Y)
+    dx + dy = 1
 
-/// Кластер смежности - "точки", смежные друг с другом, начиная с указанной в указанном списке "точек" (любых структур с координатами)
-let inline public AdjacentCluster list origin =
-    let rec nextLayers rest prevLayer =
-        if List.isEmpty rest
-        then [] 
+/// Бинарный оператор проверки смежности точек
+let inline (%) a b = IsAdjacent a b 
+
+/// Определяет, четная или нечетная сумма координат - для "шашечек"
+let inline IsOdd (p : Point) = p.IsOdd
+
+/// Сдвигает точку
+let inline Shift (dx, dy) (p : Point) = p.Shift (dx, dy)
+
+/// Смещает набор точек к началу координат (минимизирует значения координат)
+let inline ShiftToZero points =
+        // TODO: Определить minX и minY за один проход
+        let minX = points |> List.map (fun p -> p.X) |> List.min
+        let minY = points |> List.map (fun p -> p.Y) |> List.min
+        let shiftToMin p = Shift (-minX, -minY) p
+        points |> List.map shiftToMin
+
+/// Отбирает точки, смежные с данной (но не совпадающие с ней)
+let SelectAdjacentPoints points origin =
+    points |> List.filter (IsAdjacent origin)
+
+/// Отбирает позиционированные элементы, смежные с данным
+let SelectAdjacent (items : 'a list) (pos : 'a -> Point) origin =
+    let originPos = pos origin
+    items |> List.filter (fun x -> (pos x) % originPos)
+
+/// Отбирает кластер смежности - позиционированные элементы, 
+/// смежные друг с другом, начиная с указанного элемента в указанном списке
+let SelectAdjacentCluster (items : 'a list) (pos : 'a -> Point) (origin : 'a) =
+    let rec nextLayersRec (rest : 'a list) (prevLayer : 'a list) =
+        if List.isEmpty rest || List.isEmpty prevLayer then [] 
         else
-            let nextLayer = prevLayer |> List.collect (Adjacent rest) |> List.except prevLayer |> List.distinct
+            let nextLayer = 
+                prevLayer 
+                |> List.collect (SelectAdjacent rest pos) 
+                |> List.except prevLayer 
+                |> List.distinct
             let nextRest = rest |> List.except nextLayer
-            nextLayer @ nextLayers nextRest nextLayer
-    origin :: nextLayers (list |> List.except [origin]) [origin]
-    
+            nextLayer @ nextLayersRec nextRest nextLayer
+    origin :: nextLayersRec (items |> List.except [origin]) [origin]
 
-
-    
+/// Кластеризация списка любых элементов, размещенных по координатам
+let rec ClusterizeByPosition (items : 'a list) (pos : 'a -> Point) =
+    if List.isEmpty items then []
+    else
+        // Берем первый элемент и наращиваем до смежного кластера - это первый кластер
+        // потом выкидываем элементы этого кластера из списка 
+        // и повторяем, пока список не пуст
+        let cluster = SelectAdjacentCluster items pos items.Head
+        let rest = items |> List.except cluster
+        [cluster] @ ClusterizeByPosition rest pos
 

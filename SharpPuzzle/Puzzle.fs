@@ -15,26 +15,26 @@ type FigurePlacement =
 
         /// Фигура
         Figure : Figure; 
+    } 
 
-    } with
+    /// Переводит точку из координат фигуры в координаты доски
+    member inline fp.ToBoard p = Shift(fp.Origin.X, fp.Origin.Y) p
 
-    /// Переводит кубик или точку из координат фигуры в координаты доски
-    member inline fp.ToBoard x = Shift (fp.Origin.X, fp.Origin.Y) x
+    /// Переводит кубик из координат фигуры в координаты доски сохраняя цвет
+    member inline fp.ToBoard c = Cube.At(fp.ToBoard c.Position, c.Color)
 
-    /// Все кубики фигуры в координатах доски с цветом
+    /// Все кубики фигуры в координатах доски
     // TODO: memoize???
     member fp.Cubes = 
         // Перевод точки из координат фигуры в координаты доски
         fp.Figure.Cubes |> List.map fp.ToBoard
 
 
-/// Состояние доски
-type BoardState =
-    {
-        /// Фигурки на доске с указанием положения начальной точки
-        Figures : FigurePlacement list
+/// Состояние доски - не просто запись, а класс, т.к. не любая комбинация положений фигур - валидна
+type BoardState private (figures) =
 
-    } with
+    /// Фигурки на доске с указанием положения начальной точки
+    member b.Figures : FigurePlacement list = figures
 
     /// Начальная координата доски
     static member Low = 1
@@ -42,9 +42,22 @@ type BoardState =
     /// Конечная координата доски
     static member High = 8
 
-    /// Пустая доска
-    static member Empty : BoardState = { Figures = [] }
+    /// Внутренний конструктор
+    // Все остальные должны вызывать его
+    // Не делает проверок для эффективности создания новых состояний
+    static member private InternalWithFigures figures = 
+        BoardState(figures)
 
+    /// Пустая доска
+    static member Empty = BoardState []
+
+    /// Пустая доска
+    new() = BoardState []
+
+    /// Открытый конструктор
+    // TODO: Проверки корректности!!!
+    static member WithFigures figures = 
+        BoardState.InternalWithFigures figures
 
     /// Все кубики фигур с цветами, пронумерованные номерами фигур
     // TODO: memoize???
@@ -69,9 +82,18 @@ type BoardState =
         let isAt (c : Cube) = c.IsAt(x, y)
         b.AllCubesIndexed |> List.tryFind (snd >> isAt)
 
+    /// Определяет, что находится в заданной точке доски : Cube с номером или None
+    // TODO: memoize
+    member b.At p = b.At(p.X, p.Y)
+
+
     /// Размещение новой фигуры на доске -> новая доска
     member b.Place (f : Figure) (o : Point) : BoardState =
-        { Figures = { Origin = o; Figure = f } :: b.Figures }
+        let newPlacement = { Origin = o; Figure = f }
+        if b.IsPlacementAllowed newPlacement 
+            then BoardState.InternalWithFigures (newPlacement :: b.Figures)
+            else invalidArg "f" "Figure can't be placed at specified point on board"
+
 
     /// Является ли состояние доски конечным
     member b.IsFinal = 
@@ -81,11 +103,22 @@ type BoardState =
         let isFinal = (count = size)
         isFinal
 
+
     /// Можно ли разместить указанную фигуру в указанной точке?
     member b.IsPlacementAllowed (fp : FigurePlacement) = 
-        let isEmpty c = b.At(c.X, c.Y) = None
+        let isEmpty c = b.At(c.Position) = None
         fp.Cubes
         |> List.forall isEmpty
+
+
+    override b.GetHashCode() = hash(b.Figures)
+
+    override b.Equals(o) = 
+        match o with
+        | :? BoardState as other -> b.Figures = other.Figures
+        |_ -> false
+
+
         
 
         

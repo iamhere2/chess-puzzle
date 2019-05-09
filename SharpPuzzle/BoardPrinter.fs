@@ -6,7 +6,8 @@ open Colors
 open Cubes
 open Puzzle
 
-let Print (b:BoardState) =
+/// Печатает состояние доски на консоли
+let Print (b : BoardState) =
     let writeCell (cell : (int * Cube) option) =
         let (bk, fg, s) = 
             match cell with
@@ -19,8 +20,11 @@ let Print (b:BoardState) =
         Console.Write(s)
     
     for y in [ BoardState.Low .. BoardState.High ] do
+    (
         for x in [ BoardState.Low .. BoardState.High ] do
             writeCell(b.At(x, y))
+
         Console.WriteLine()
+    )
 
 

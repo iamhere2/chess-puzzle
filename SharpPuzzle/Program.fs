@@ -2,8 +2,6 @@
 
 open System
 
-open Colors
-open Figures
 open Puzzle
 open BoardPrinter
 open FigureParser
@@ -15,7 +13,6 @@ let allFigiresPicStr = """
 
    """
 
-
 [<EntryPoint>]
 let main _ = 
     
@@ -24,13 +21,9 @@ let main _ =
     Console.WriteLine(String.Format("Figures ({0}):", figures.Length))
 
     let printFigure f = 
-        let b:BoardState = 
-            {
-                Figures = 
-                [ 
+        let b = BoardState.WithFigures([ 
                     { Origin = { X = 2; Y = 2 }; Figure = f } 
-                ] 
-            }
+                ]) 
         Print b
         Console.WriteLine()
 
