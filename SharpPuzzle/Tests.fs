@@ -129,4 +129,25 @@ let ``Расчет кластера смежности работает на к�
 
     // Assert
     cluster =! [ { X = 1; Y = 1 } ]
+
+    
+[<Test>]
+let ``Memoization работает (проверка отладчиком)``() =
+
+    // Arrange
+    let f = Figure.FromCoords Black [ (1, 1); (1, 2); ]
+
+    // Act
+    let points = f.Points
+    let reversePoints =  List.rev points
+    let colors = points |> List.map f.ColorAt
+    let reverseColors = reversePoints |> List.map f.ColorAt
+
+    // Assert
+    // ... и проверяем также под отладчиком, что зашли в расчет цвета точки 
+    // только один раз на каждую координату, а не дважды
+    colors =! (List.rev reverseColors)
+
+
+
     

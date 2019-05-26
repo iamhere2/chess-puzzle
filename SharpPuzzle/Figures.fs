@@ -11,43 +11,53 @@ open Cubes
 /// Фигура - набор смежных чередующихся по цвету кубиков
 /// Это уже не просто запись, а класс с закрытыми полями - не все сочетания данных валидны как фигура
 /// Разные повороты и отражения и смещения - это другие фигуры
-/// Хранятся только точки и цвет одного из кубиков, остальные кубики рассчитываются 
-///   (??? а хорошо ли это ???)
 [<Struct; IsReadOnly>]
-type Figure private (firstPointColor : Color, points : Point list) = 
+type Figure private (cubeMap: Map<Point, Cube>) = 
 
-    /// Цвет первого кубика
-    member f.FirstCubeColor : Color = firstPointColor
+    /// Карта фигуры
+    /// Все, что хранится, остальное - выводится
+    /// Какие кубики по каким относительным координатам входят в фигуру
+    member f.CubeMap: Map<Point, Cube> = cubeMap
 
-    /// Какие смежные точки (относительные координаты) входят в фигуру
-    member f.Points : Point list = points
+    /// Число кубиков в фигуре
+    member inline f.CubeCount = f.CubeMap.Count
 
+    /// Кубики фигуры
+    member inline f.Cubes = f.CubeMap |> Map.toList |> List.map snd
 
-    /// Внутренняя проверка смежности точек
-    static member private ValidateAdjacement (points : Point list) =
-        let cluster = SelectAdjacentCluster points id points.Head
-        if cluster.Length = points.Length then points else invalidArg "points" "Points of figure must be adjacement"
-
-
-    /// Создает фигуру из точек и цвета первой точки
-    // Все остальные методы создания должны вызывать этот, т.к. в нем есть все нужные проверки
-    static member FromPoints firstPointColor points = 
-        let validatedNormalizedPoints = points |> List.distinct |> ShiftToZero |> Figure.ValidateAdjacement
-        Figure(firstPointColor, validatedNormalizedPoints)
+    /// Точки фигуры
+    member inline f.Points = f.CubeMap |> Map.toList |> List.map fst
 
 
     /// Создает фигуру из кубиков
-    // Проверяет, что цвета кубиков чередуются верно
+    // Все остальные методы создания должны вызывать этот, т.к. в нем есть все нужные проверки
+    // Проверяет, что цвета кубиков чередуются верно, и что кубики смежны
     static member FromCubes (cubes: Cube list) = 
+
+        // Проверим на смежность
+        let cluster = SelectAdjacentCluster cubes PositionOf cubes.Head
+        if cluster.Length <> cubes.Length then invalidArg "cubes" "Cubes of figure must be adjacement"
+
+        // Проверим на цвета
         let headOdd = IsOdd cubes.Head.Position
         let headColor = cubes.Head.Color
-        let validateCube c = 
+        let validateCubeColor c = 
             if c = cubes.Head then c
             elif ((IsOdd c.Position) = headOdd) = (c.Color = headColor) then c
             else invalidArg "cubes" "Cubes in figure must has interleaved colors";
         
-        let validatedCubes = cubes |> List.map validateCube
-        Figure.FromPoints validatedCubes.Head.Color (validatedCubes |> List.map PositionOf)
+        let validatedCubes = cubes |> List.map validateCubeColor
+        let cubeMap = validatedCubes |> List.map (fun c -> (c.Position, c)) |> Map.ofList
+
+        Figure(cubeMap)
+
+
+    /// Создает фигуру из точек и цвета первой точки
+    static member FromPoints firstPointColor (points: Point list) = 
+        let headOdd = IsOdd points.Head
+        let cubeFromPoint p = { Position = p; Color = if p.IsOdd = headOdd then firstPointColor else firstPointColor.Inverted  } 
+        let cubes = points |> List.map cubeFromPoint 
+        Figure.FromCubes cubes
 
 
     /// Создает фигуру по цвету первой точки и координатам точек
@@ -55,36 +65,18 @@ type Figure private (firstPointColor : Color, points : Point list) =
         let points = coords |> List.map Point.At 
         Figure.FromPoints color points
 
-
-    /// Определяет цвет кубика
-    /// Правильно использовать только для точек из списка фигуры, поэтому private
-    member inline private f.InternalColorAt (p : Point) = 
-        if (IsOdd p) = (IsOdd f.Points.Head) then f.FirstCubeColor else f.FirstCubeColor.Inverted
+    
+    /// Цвет по указанным относительным координатам или None
+    // TODO: Кажется, это деалется проще с монадными функциями типа bind, поизучать
+    member f.ColorAt (p: Point) : Color option =
+        let c = f.CubeMap.TryFind p
+        match c with 
+            | Some cube -> Some cube.Color
+            | None -> None
 
 
     /// Кубик по указанным относительным координатам или None
-    // TODO: How to memoize it?
-    member f.At (p: Point) : Cube option = 
-        match f.ColorAt p with
-        | None -> None
-        | Some c -> Some (Cube.At(p, c))
-
-
-    /// Цвет по указанным относительным координатам или None
-    // TODO: How to memoize it?
-    member f.ColorAt (p: Point) : Color option =
-        if List.contains p f.Points then Some (f.InternalColorAt p) else None
-
-
-    // Все кубики фигуры
-    // TODO: How to memoize it?
-    member f.Cubes =
-        let this = f
-        let cubeAt p = Cube.At(p, this.InternalColorAt p)
-        f.Points |> List.map cubeAt
-
-
-    /// Число кубиков в фигуре
-    member inline f.CubeCount = f.Points.Length
+    // TODO: How to memoize it? Видимо, явно включить в структуру заготовленный Map
+    member inline f.CubeAt (p: Point) : Cube option = f.CubeMap.TryFind p
 
 

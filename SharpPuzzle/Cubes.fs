@@ -13,7 +13,7 @@ open Colors
 type Cube = 
     { 
         Position: Point
-        Color : Color
+        Color: Color
     }
 
     /// Возвращает кубик с тем же цветом, но со сдвигом

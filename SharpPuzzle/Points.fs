@@ -41,11 +41,11 @@ let inline (%) a b = IsAdjacent a b
 
 
 /// Определяет, четная или нечетная сумма координат - для "шашечек"
-let inline IsOdd (p : Point) = p.IsOdd
+let inline IsOdd (p: Point) = p.IsOdd
 
 
 /// Сдвигает точку
-let inline Shift (dx, dy) (p : Point) = p.Shift (dx, dy)
+let inline Shift (dx, dy) (p: Point) = p.Shift (dx, dy)
 
 
 /// Смещает набор точек к началу координат (минимизирует значения координат)
@@ -63,15 +63,15 @@ let SelectAdjacentPoints points origin =
 
 
 /// Отбирает позиционированные элементы, смежные с данным
-let SelectAdjacent (items : 'a list) (pos : 'a -> Point) origin =
+let SelectAdjacent (items: 'a list) (pos: 'a -> Point) origin =
     let originPos = pos origin
     items |> List.filter (fun x -> (pos x) % originPos)
 
 
 /// Отбирает кластер смежности - позиционированные элементы, 
 /// смежные друг с другом, начиная с указанного элемента в указанном списке
-let SelectAdjacentCluster (items : 'a list) (pos : 'a -> Point) (origin : 'a) =
-    let rec nextLayersRec (rest : 'a list) (prevLayer : 'a list) =
+let SelectAdjacentCluster (items: 'a list) (pos :'a -> Point) (origin : 'a) =
+    let rec nextLayersRec (rest: 'a list) (prevLayer: 'a list) =
         if List.isEmpty rest || List.isEmpty prevLayer then [] 
         else
             let nextLayer = 
@@ -85,7 +85,7 @@ let SelectAdjacentCluster (items : 'a list) (pos : 'a -> Point) (origin : 'a) =
 
 
 /// Кластеризация списка любых элементов, размещенных по координатам
-let rec ClusterizeByPosition (items : 'a list) (pos : 'a -> Point) =
+let rec ClusterizeByPosition (items: 'a list) (pos: 'a -> Point) =
     if List.isEmpty items then []
     else
         // Берем первый элемент и наращиваем до смежного кластера - это первый кластер
