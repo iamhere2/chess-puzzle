@@ -105,16 +105,20 @@ let ``Парсер фигур парсит фигуры``() =
 
 
 [<Test>]
-let ``Цвет кубиков фигуры корректно определяется для случая первой точки не в (0,0) и точек не по порядку``() =
+let ``Цвет кубиков фигуры корректно определяется для случая первой точки не в (0,0) и точек не по порядку и смещенных``() =
 
     // Arrange
-    let f = Figure.FromCoords Black [ (1, 1); (1, 2); (1, 3); (0, 3); (1, 0) ]
+    let dx = 10;
+    let dy = 20;
+    let coords = [ (1, 1); (1, 2); (1, 3); (0, 3); (1, 0) ] |> List.map (fun (x, y) -> (x + dx, y + dy));
+    let f = Figure.FromCoords Black coords
 
     // Act
-    let colors = f.Points |> List.map f.ColorAt
 
     // Assert
-    colors =! [Some Black; Some White; Some Black; Some White; Some White ]
+    f.ColorAt { X = 1; Y = 1; } =! Some Black
+    f.ColorAt { X = 0; Y = 3; } =! Some White
+    f.ColorAt { X = 9; Y = 9; } =! None
 
 
 

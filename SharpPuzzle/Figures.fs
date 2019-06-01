@@ -32,21 +32,27 @@ type Figure private (cubeMap: Map<Point, Cube>) =
     /// Создает фигуру из кубиков
     // Все остальные методы создания должны вызывать этот, т.к. в нем есть все нужные проверки
     // Проверяет, что цвета кубиков чередуются верно, и что кубики смежны
-    static member FromCubes (cubes: Cube list) = 
+    static member FromCubes (sourceCubes: Cube list) = 
+        
+        // Сдвинем к началу координат
+        let minX = sourceCubes |> List.map (fun p -> p.Position.X) |> List.min
+        let minY = sourceCubes |> List.map (fun p -> p.Position.Y) |> List.min
+        let shiftToMin c = { Color = c.Color; Position = Shift (-minX, -minY) c.Position }
+        let figureCubes = sourceCubes |> List.map shiftToMin
 
         // Проверим на смежность
-        let cluster = SelectAdjacentCluster cubes PositionOf cubes.Head
-        if cluster.Length <> cubes.Length then invalidArg "cubes" "Cubes of figure must be adjacement"
+        let cluster = SelectAdjacentCluster figureCubes PositionOf figureCubes.Head
+        if cluster.Length <> figureCubes.Length then invalidArg "cubes" "Cubes of figure must be adjacement"
 
         // Проверим на цвета
-        let headOdd = IsOdd cubes.Head.Position
-        let headColor = cubes.Head.Color
+        let headOdd = IsOdd figureCubes.Head.Position
+        let headColor = figureCubes.Head.Color
         let validateCubeColor c = 
-            if c = cubes.Head then c
+            if c = figureCubes.Head then c
             elif ((IsOdd c.Position) = headOdd) = (c.Color = headColor) then c
             else invalidArg "cubes" "Cubes in figure must has interleaved colors";
         
-        let validatedCubes = cubes |> List.map validateCubeColor
+        let validatedCubes = figureCubes |> List.map validateCubeColor
         let cubeMap = validatedCubes |> List.map (fun c -> (c.Position, c)) |> Map.ofList
 
         Figure(cubeMap)
