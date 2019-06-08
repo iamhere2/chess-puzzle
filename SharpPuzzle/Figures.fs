@@ -15,7 +15,7 @@ open Cubes
 type Figure private (cubeMap: Map<Point, Cube>) = 
 
     /// Карта фигуры
-    /// Все, что хранится, остальное - выводится
+    /// Это все, что хранится, а остальное - вычисляется
     /// Какие кубики по каким относительным координатам входят в фигуру
     member f.CubeMap: Map<Point, Cube> = cubeMap
 
@@ -74,7 +74,7 @@ type Figure private (cubeMap: Map<Point, Cube>) =
     
     /// Цвет по указанным относительным координатам или None
     // TODO: Кажется, это деалется проще с монадными функциями типа bind, поизучать
-    member f.ColorAt (p: Point) : Color option =
+    member inline f.ColorAt (p: Point) : Color option =
         let c = f.CubeMap.TryFind p
         match c with 
             | Some cube -> Some cube.Color

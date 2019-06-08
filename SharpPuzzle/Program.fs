@@ -2,7 +2,7 @@
 
 open System
 
-open Puzzle
+open Boards
 open BoardPrinter
 open FigureParser
 

@@ -3,17 +3,17 @@
 open System
 
 open Colors
-open Cubes
-open Puzzle
+open Points
+open Boards
 
 /// Печатает состояние доски на консоли
 let Print (b : BoardState) =
-    let writeCell (cell : (int * Cube) option) =
+    let writeCell (cell : CubeOnBoard option) =
         let (bk, fg, s) = 
             match cell with
-            | None                      -> (ConsoleColor.DarkGray, ConsoleColor.DarkGray, "  ")
-            | Some (n, {Color = White}) -> (ConsoleColor.White,    ConsoleColor.DarkGray, sprintf "%2d" n)
-            | Some (n, {Color = Black}) -> (ConsoleColor.Black,    ConsoleColor.Gray,     sprintf "%2d" n)
+            | None                                    -> (ConsoleColor.DarkGray, ConsoleColor.DarkGray, "  ")
+            | Some { Color = White; FigureIndex = n } -> (ConsoleColor.White,    ConsoleColor.DarkGray, sprintf "%2d" n)
+            | Some { Color = Black; FigureIndex = n } -> (ConsoleColor.Black,    ConsoleColor.Gray,     sprintf "%2d" n)
 
         Console.BackgroundColor <- bk;
         Console.ForegroundColor <- fg;
@@ -22,7 +22,7 @@ let Print (b : BoardState) =
     for y in [ BoardState.Low .. BoardState.High ] do
     (
         for x in [ BoardState.Low .. BoardState.High ] do
-            writeCell(b.At(x, y))
+            writeCell(b.At(Point.At(x, y)))
 
         Console.WriteLine()
     )
