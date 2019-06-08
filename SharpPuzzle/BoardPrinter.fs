@@ -18,6 +18,9 @@ let Print (b : BoardState) =
         Console.BackgroundColor <- bk;
         Console.ForegroundColor <- fg;
         Console.Write(s)
+
+    let oldBk = Console.BackgroundColor
+    let oldFg = Console.ForegroundColor
     
     for y in [ BoardState.Low .. BoardState.High ] do
     (
@@ -27,4 +30,6 @@ let Print (b : BoardState) =
         Console.WriteLine()
     )
 
+    Console.BackgroundColor <- oldBk;
+    Console.ForegroundColor <- oldFg;
 
