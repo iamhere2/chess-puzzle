@@ -25,7 +25,7 @@ let Print (b : BoardState) =
     for y in [ BoardState.Low .. BoardState.High ] do
     (
         for x in [ BoardState.Low .. BoardState.High ] do
-            writeCell(b.At(Point.At(x, y)))
+            writeCell(b.At(PointAt(x, y)))
 
         Console.WriteLine()
     )

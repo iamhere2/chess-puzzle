@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ChessPuzzle
@@ -37,32 +37,32 @@ namespace ChessPuzzle
 
         private SolutionState(Board board, IList<Figure> restFigures, Dictionary<Figure, IList<Figure>> figureTransformations)
         {
-            Contract.Requires(board != null);
-            Contract.Requires(restFigures != null);
-            Contract.Requires(figureTransformations != null);
+            Ensure.Arg(board, nameof(board)).IsNotNull();
+            Ensure.Arg(restFigures, nameof(restFigures)).IsNotNull();
+            Ensure.Arg(figureTransformations, nameof(figureTransformations)).IsNotNull();
 
             Board = board;
             RestFigures = new ReadOnlyCollection<Figure>(restFigures);
             FigureTransformations = figureTransformations;
         }
 
-        public static SolutionState CreateInitial(IList<Figure> figures) 
+        public static SolutionState CreateInitial(IList<Figure> figures)
             => new SolutionState(Board.CreateEmpty(), figures, GetFigureTransformations(figures));
 
-        private static Dictionary<Figure, IList<Figure>> GetFigureTransformations(IEnumerable<Figure> figures) 
+        private static Dictionary<Figure, IList<Figure>> GetFigureTransformations(IEnumerable<Figure> figures)
             => figures.ToDictionary(f => f, FigureTransformer.GetTransformations);
 
         public SolutionState CreateNextState(Decision decision)
         {
-            Contract.Requires(decision != null);
+            Ensure.Arg(decision, nameof(decision)).IsNotNull();
 
-            var newBoard = 
+            var newBoard =
                 Board.CreateByPlacementNewFigure(
-                    Board, 
-                    decision.TransformedFigure, 
-                    decision.PlacementPoint); 
+                    Board,
+                    decision.TransformedFigure,
+                    decision.PlacementPoint);
 
-            return 
+            return
                 new SolutionState(newBoard, RestFigures.Where(f => f != decision.SelectedFigure).ToList(), FigureTransformations);
         }
 
@@ -73,7 +73,11 @@ namespace ChessPuzzle
                 CalculateDecisions();
                 IsDecisionsCalculated = true;
             }
+
+            Assert.That(IsDecisionsCalculated == true);
+            Assert.That(PossibleDecisions != null);
         }
+
 
         private void CalculateDecisions()
         {

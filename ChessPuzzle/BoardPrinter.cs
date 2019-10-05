@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 
 namespace ChessPuzzle
 {
@@ -7,7 +6,7 @@ namespace ChessPuzzle
     {
         public static void Print(Board board)
         {
-            Contract.Requires(board != null);
+            Ensure.Arg(board, nameof(board)).IsNotNull();
 
             var oldBkColor = Console.BackgroundColor;
             var oldFgColor = Console.ForegroundColor;

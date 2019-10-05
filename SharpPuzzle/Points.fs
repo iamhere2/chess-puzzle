@@ -29,6 +29,10 @@ type Point =
     member inline p.IsOdd = ((p.X + p.Y) &&& 1) = 1
 
 
+/// Вариант функции для создания точки
+let inline PointAt(x, y) = Point.At(x, y)
+
+
 /// Проверка того, что две точки 4-смежны (и не совпадают)
 let inline IsAdjacent a b =
     let dx = abs (a.X - b.X)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace ChessPuzzle
@@ -18,8 +17,8 @@ namespace ChessPuzzle
 
         public bool SearchSolution(SolutionState initialState)
         {
-            Contract.Requires(initialState != null);
-            
+            Ensure.Arg(initialState, nameof(initialState)).IsNotNull();
+
             ClearStates();
 
             if (initialState.IsFinal)
@@ -38,6 +37,7 @@ namespace ChessPuzzle
 
                 // Убедимся, что действия уже были рассчитаны или рассчитаем их
                 currentState.EnsureDecisionsCalculated();
+                Assert.That(currentState.PossibleDecisions != null);
 
                 // Есть ли еще нерассмотренные варианты действий?);
                 if (currentState.PossibleDecisions.Any())
@@ -82,10 +82,10 @@ namespace ChessPuzzle
             }
         }
 
-        private void OnStateEnter(SolutionState state) 
+        private void OnStateEnter(SolutionState state)
             => StateEnter?.Invoke(this, new StateEventArgs(state));
 
-        public event EventHandler<StateEventArgs> StateEnter;
+        public event EventHandler<StateEventArgs>? StateEnter;
 
         private void ClearStates()
         {

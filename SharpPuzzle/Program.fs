@@ -39,4 +39,4 @@ let main _ =
 
     Console.ReadLine() |> ignore
 
-    0 // return an integer exit code
+    0 // exit code

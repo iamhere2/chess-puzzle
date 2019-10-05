@@ -23,7 +23,7 @@ type Cube =
     member c.IsAt (x, y) = c.Position.IsAt(x, y)
 
     /// Создает кубик из координат и цвета 
-    static member At(x, y, c) = Cube.At(Point.At(x, y), c)
+    static member At(x, y, c) = Cube.At(PointAt(x, y), c)
 
     /// Создает кубик из точки и цвета 
     static member At(p, c) = { Position = p; Color = c }

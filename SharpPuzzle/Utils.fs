@@ -19,6 +19,3 @@ let memoize f =
 let JoinMaps (p: Map<'a,'b>) (q: Map<'a,'b>) = 
     Map(Seq.concat [ (Map.toSeq p) ; (Map.toSeq q) ])
 
-
-/// Помечает все элементы последовательности дополнительным значением, превращая в tuple
-let MarkEach mark s = Seq.map (fun x -> mark, x) s

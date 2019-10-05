@@ -81,8 +81,8 @@ type BoardState private (figures, cubeMap) =
 
     /// Удостоверяется, что точка в координатах доски (иначе - исключение)
     static member inline EnsurePointIsValid p =
-        if p.X < BoardState.Low || p.X > BoardState.High then raise (ArgumentOutOfRangeException("p.X"))
-        if p.Y < BoardState.Low || p.Y > BoardState.High then raise (ArgumentOutOfRangeException("p.Y"))
+        if p.X < BoardState.Low || p.X > BoardState.High then raise (ArgumentOutOfRangeException("p.X", p.X, "Out of board"))
+        if p.Y < BoardState.Low || p.Y > BoardState.High then raise (ArgumentOutOfRangeException("p.Y", p.Y, "Out of board"))
         p
 
 
@@ -109,8 +109,8 @@ type BoardState private (figures, cubeMap) =
 
     /// Является ли состояние доски конечным
     member b.IsFinal = 
-        b.CubeMap.Count = (BoardState.High - BoardState.Low + 1) * 2
-
+        let length = BoardState.High - BoardState.Low + 1
+        b.CubeMap.Count = length * length
 
 
     /// Открытый конструктор с набором фигурок
@@ -174,9 +174,6 @@ type BoardState private (figures, cubeMap) =
         |_ -> false
 
 
-        
-
-        
 
 
 

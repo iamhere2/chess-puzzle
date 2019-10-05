@@ -10,6 +10,7 @@ open Colors
 open Cubes
 open Figures
 open FigureParser
+open Boards
 
 
 [<Test>]
@@ -133,6 +134,97 @@ let ``Расчет кластера смежности работает на к�
 
     // Assert
     cluster =! [ { X = 1; Y = 1 } ]
+
+
+
+[<Test>]
+let ``Нельзя создать доску с наложением фигур``() =
+    // Arrange
+    let s = """
+            WB
+            BW  
+            """
+    let figure = Seq.exactlyOne (ParseFiguresPicStr s)
+    let placements = 
+        [
+            { Figure = figure; Origin = PointAt(2, 2) };
+            { Figure = figure; Origin = PointAt(2, 2) }
+        ]
+
+    // Act, Assert
+    raises<ArgumentException> <@ BoardState.WithFigures placements @>
+
+
+[<Test>]
+let ``Нельзя создать доску с выходом фигуры за границу``() =
+    // Arrange
+    let s = """WBWBWB"""
+    let figure = Seq.exactlyOne (ParseFiguresPicStr s)
+    let placements = [ { Figure = figure; Origin = PointAt(7, 7) } ]
+
+    // Act, Assert
+    raises<ArgumentException> <@ BoardState.WithFigures placements @>
+
+
+[<Test>]
+let ``Добавление фигур по одной работает, пока не будет наложения``() =
+    // Arrange
+    let s = """
+            WB
+            BW  
+            """
+    let figure = Seq.exactlyOne (ParseFiguresPicStr s)
+
+    // Act
+    let s0 = BoardState.Empty
+    let s1 = s0.Place figure (PointAt (1, 1));
+    let s2 = s1.Place figure (PointAt (3, 3));
+    let s3 = s2.Place figure (PointAt (5, 5));
+    let s4 = s3.Place figure (PointAt (7, 7));
+    
+    // Assert
+    raises<ArgumentException> <@ s4.Place figure (PointAt (2, 2)) @>
+
+
+[<Test>]
+let ``Хеш-код не зависит от порядка формирования и сравнение работает``() =
+    // Arrange
+    let s = """
+            W
+            """
+    let figure = Seq.exactlyOne (ParseFiguresPicStr s)
+
+    let steps = [1 .. 1 .. 3];
+    let origins = steps |> List.map (fun s -> PointAt(s, s))
+    let placements = origins |> List.mapi (fun ndx o -> { Figure = figure; Origin = o; FigureIndex = ndx })
+    let placer (s: BoardState) placement = s.Place placement
+
+    // Act
+    let statesForward = origins |> List.scan placer BoardState.Empty
+    let statesBackward = origins |> List.rev |> List.scan placer BoardState.Empty
+
+    let lastForward = statesForward |> List.last
+    let lastBackward = statesBackward |> List.last
+
+    let interStatesForward = statesForward.GetSlice(Some 0, Some (statesForward.Length - 1))
+    let interStatesBackward = statesBackward.GetSlice(Some 0, Some (statesBackward.Length - 1))
+
+    // Assert
+
+    // Последние состояния равны
+    statesForward.Length =! statesBackward.Length
+    lastForward.GetHashCode() =! lastBackward.GetHashCode()
+    lastForward =! lastBackward
+
+    // Промежуточные - отличаются
+    List.iter2 
+        (fun (s1:BoardState) (s2:BoardState) -> 
+            s1 <>! s2
+            s1.GetHashCode() <>! s2.GetHashCode()
+            s1.CubeMap.Count =! s2.CubeMap.Count
+        )
+        interStatesForward
+        interStatesBackward
 
 
 (*    

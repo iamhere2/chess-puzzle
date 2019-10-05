@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
 using System.Linq;
 
 namespace ChessPuzzle
@@ -21,7 +20,8 @@ namespace ChessPuzzle
 
             public Placement(Figure figure, Point point, int num)
             {
-                Contract.Requires(figure != null);
+                Ensure.Arg(figure, nameof(figure)).IsNotNull();
+
                 Figure = figure;
                 Num = num;
                 Point = point;
@@ -36,7 +36,7 @@ namespace ChessPuzzle
             private FigureCell FindFigureCell(Point point)
             {
                 var placementPoint = Point;
-                return 
+                return
                     Figure.Cells.FirstOrDefault(
                         c =>
                             point.X == placementPoint.X + c.RelativePoint.X &&
@@ -71,7 +71,7 @@ namespace ChessPuzzle
 
         public bool IsPossiblePlacement(Figure figure, Point point)
         {
-            Contract.Requires(figure != null);
+            Ensure.Arg(figure, nameof(figure)).IsNotNull();
 
             foreach (var fc in figure.Cells)
             {
@@ -94,7 +94,7 @@ namespace ChessPuzzle
 
         public bool IsValidPlacement(Figure figure, Point point)
         {
-            Contract.Requires(figure != null);
+            Ensure.Arg(figure, nameof(figure)).IsNotNull();
 
             if (!IsPossiblePlacement(figure, point))
                 return false;
@@ -115,13 +115,17 @@ namespace ChessPuzzle
                 return null;
 
             var ff = Figures.First();
-            return CalculateOddCellsColor(ff.Point, ff.GetColor(ff.Point).Value);
+
+            var firstCellColor = ff.GetColor(ff.Point);
+            Assert.That(firstCellColor.HasValue);
+
+            return CalculateOddCellsColor(ff.Point, firstCellColor.Value);
         }
 
-        private static Color CalculateOddCellsColor(Point probePoint, Color probeColor) 
+        private static Color CalculateOddCellsColor(Point probePoint, Color probeColor)
             => probePoint.IsOdd ? probeColor : probeColor.GetInverted();
 
-        public Color? GetColor(Point point) 
+        public Color? GetColor(Point point)
             => GetPointInfo(point).Color;
 
         public PointInfo GetPointInfo(Point point)
@@ -136,13 +140,13 @@ namespace ChessPuzzle
             return PointInfo.Empty;
         }
 
-        public static Board CreateEmpty() => 
+        public static Board CreateEmpty() =>
             new Board(new ReadOnlyCollection<Placement>(new Placement[] { }));
 
         public static Board CreateByPlacementNewFigure(Board prev, Figure figure, Point point)
         {
-            Contract.Requires(prev != null);
-            Contract.Requires(figure != null);
+            Ensure.Arg(prev, nameof(prev)).IsNotNull();
+            Ensure.Arg(figure, nameof(figure)).IsNotNull();
 
             if (!prev.IsValidPlacement(figure, point))
                 throw new ArgumentException("Invalid or impossible placement");
@@ -153,7 +157,7 @@ namespace ChessPuzzle
 
         private Board(IEnumerable<Placement> figures)
         {
-            Contract.Requires(figures != null);
+            Ensure.Arg(figures, nameof(figures)).IsNotNull();
             Figures = figures;
         }
 
@@ -171,7 +175,5 @@ namespace ChessPuzzle
 
             public static readonly PointInfo Empty = new PointInfo(null, null);
         }
-
     }
-
 }
