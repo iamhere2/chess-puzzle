@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace ChessPuzzle
 {
@@ -23,7 +24,7 @@ namespace ChessPuzzle
         private static void Print(Board.PointInfo pi)
         {
             SetColors(pi.Color);
-            Console.Write(pi.Placement?.Num.ToString("00") ?? "  ");
+            Console.Write(pi.Placement?.Num.ToString("00", CultureInfo.InvariantCulture) ?? "  ");
         }
 
         private static void SetColors(Color? color)

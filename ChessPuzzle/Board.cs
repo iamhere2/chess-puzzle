@@ -123,7 +123,7 @@ namespace ChessPuzzle
         }
 
         public static Board CreateEmpty() =>
-            new Board(new ReadOnlyCollection<Placement>(new Placement[] { }));
+            new Board(new ReadOnlyCollection<Placement>(Array.Empty<Placement>()));
 
         public static Board CreateByPlacementNewFigure(Board prev, Figure figure, Point point)
         {

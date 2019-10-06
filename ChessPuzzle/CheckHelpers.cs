@@ -4,9 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ChessPuzzle
 {
-    internal class AssertException : Exception
+    public class AssertException : Exception
     {
-        public AssertException() : this("Unexpected internal program state")
+        private const string DEFAULT_MESSAGE = "Unexpected internal program state";
+
+        public AssertException() : this(DEFAULT_MESSAGE)
         {
         }
 
