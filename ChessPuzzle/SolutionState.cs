@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace ChessPuzzle
@@ -73,56 +71,46 @@ namespace ChessPuzzle
                 CalculateDecisions();
                 IsDecisionsCalculated = true;
             }
-
-            Assert.That(IsDecisionsCalculated == true);
-            Assert.That(PossibleDecisions != null);
         }
-
 
         private void CalculateDecisions()
         {
             PossibleDecisions = new Queue<Decision>();
 
             // Найдем первую свободную точку - это будет целевая
-            var targetPoint = FindFreePoint();
+            var targetPointOrNull = Board.FindFirstFreePoint();
 
-            // Для всех оставшихся фигур
+            // Если не нашлась - значит, возможных размещений больше нет
+            if (targetPointOrNull == null)
+                return;
+
+            var targetPoint = targetPointOrNull.Value;
+
+            // Пытаемся разместить фигуры из сотавшихся
             foreach (var restFigure in RestFigures)
-            {
-                // Для всех трансформаций
-                foreach (var transformedFigure in FigureTransformations[restFigure])
-                {
-                    // Для всех (пробных) клеток трансформированной фигуры
-                    foreach (var cell in transformedFigure.Cells)
-                    {
-                        // Расчитываем точку расположения для совмещения пробной клетки с целевой точкой
-                        var relativePoint = cell.RelativePoint;
-                        var placementPoint = Point.Of(targetPoint.X - relativePoint.X, targetPoint.Y - relativePoint.Y);
+                TryPlaceFigure(targetPoint, restFigure);
+        }
 
-                        // Если это допустимое расположение - то добавляем в список решений, иначе - идем дальше
-                        if (Board.IsValidPlacement(transformedFigure, placementPoint))
-                        {
-                            PossibleDecisions.Enqueue(
-                                new Decision(selectedFigure: restFigure, transformedFigure, placementPoint));
-                        }
+        private void TryPlaceFigure(Point targetPoint, Figure figure)
+        {
+            // Для всех трансформаций фигуры
+            foreach (var transformedFigure in FigureTransformations[figure])
+            {
+                // Для всех (пробных) клеток трансформированной фигуры
+                foreach (var cell in transformedFigure.Cells)
+                {
+                    // Расчитываем точку расположения для совмещения пробной клетки с целевой точкой
+                    var placementPoint = targetPoint.Shift(-cell.RelativePoint);
+
+                    // Если это допустимое расположение - то добавляем в список решений, иначе - идем дальше
+                    if (Board.IsValidPlacement(transformedFigure, placementPoint))
+                    {
+                        Assert.That(PossibleDecisions != null);
+                        PossibleDecisions.Enqueue(
+                            new Decision(selectedFigure: figure, transformedFigure, placementPoint));
                     }
                 }
             }
-        }
-
-        private Point FindFreePoint()
-        {
-            for (int y = Board.Low; y <= Board.High; y++)
-            {
-                for (int x = Board.Low; x <= Board.High; x++)
-                {
-                    var p = Point.Of(x, y);
-                    if (!Board.HasCell(p))
-                        return p;
-                }
-            }
-
-            throw new InvalidOperationException("Free point not found");
         }
     }
 }

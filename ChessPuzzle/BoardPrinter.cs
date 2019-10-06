@@ -2,56 +2,54 @@
 
 namespace ChessPuzzle
 {
-    class BoardPrinter
+    static class BoardPrinter
     {
         public static void Print(Board board)
         {
             Ensure.Arg(board, nameof(board)).IsNotNull();
 
-            var oldBkColor = Console.BackgroundColor;
-            var oldFgColor = Console.ForegroundColor;
-
-            for (int y = Board.Low; y <= Board.High; y++)
+            WithSaveAndRestoreColors(() =>
             {
-                for (int x = Board.Low; x <= Board.High; x++)
+                foreach (var point in Board.AllPointsOrdered)
                 {
-                    var pointInfo = board.GetPointInfo(Point.Of(x, y));
+                    Print(board.GetPointInfo(point));
 
-                    var color = pointInfo.Color;
-                    SetColors(color);
-
-                    var placement = pointInfo.Placement;
-                    var numStr = placement.HasValue ? placement.Value.Num.ToString("00") : "  ";
-                    Console.Write(numStr);
+                    if (point.X == Board.High)
+                        Console.WriteLine();
                 }
+            });
+        }
 
-                Console.WriteLine();
-            }
-
-            Console.BackgroundColor = oldBkColor;
-            Console.ForegroundColor = oldFgColor;
+        private static void Print(Board.PointInfo pi)
+        {
+            SetColors(pi.Color);
+            Console.Write(pi.Placement?.Num.ToString("00") ?? "  ");
         }
 
         private static void SetColors(Color? color)
         {
-            if (!color.HasValue)
+            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.BackgroundColor = color switch
             {
-                Console.BackgroundColor = ConsoleColor.DarkGray;
-                return;
-            }
+                Color.White => ConsoleColor.White,
+                Color.Black => ConsoleColor.Black,
+                _ => ConsoleColor.DarkGray
+            };
+        }
 
-            switch (color.Value)
+        private static void WithSaveAndRestoreColors(Action action)
+        {
+            var oldBkColor = Console.BackgroundColor;
+            var oldFgColor = Console.ForegroundColor;
+
+            try
             {
-                case Color.White:
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    break;
-                case Color.Black:
-                    Console.BackgroundColor = ConsoleColor.Black;
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                action();
+            }
+            finally
+            {
+                Console.BackgroundColor = oldBkColor;
+                Console.ForegroundColor = oldFgColor;
             }
         }
     }

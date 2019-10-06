@@ -37,13 +37,15 @@ namespace ChessPuzzle
 
                 // Убедимся, что действия уже были рассчитаны или рассчитаем их
                 currentState.EnsureDecisionsCalculated();
-                Assert.That(currentState.PossibleDecisions != null);
+
+                var possibleDecisions = currentState.PossibleDecisions;
+                Assert.That(possibleDecisions != null);
 
                 // Есть ли еще нерассмотренные варианты действий?);
-                if (currentState.PossibleDecisions.Any())
+                if (possibleDecisions.Any())
                 {
                     // Берем очередное действие, вычеркивая из списка
-                    var decision = currentState.PossibleDecisions.Dequeue();
+                    var decision = possibleDecisions.Dequeue();
 
                     // Рассчитываем состояние после действия
                     var nextState = currentState.CreateNextState(decision);
@@ -67,7 +69,6 @@ namespace ChessPuzzle
                         currentState = States.Pop();
                     else
                         return false;
-
                 }
             }
         }
@@ -76,14 +77,10 @@ namespace ChessPuzzle
         {
             public SolutionState State { get; private set; }
 
-            public StateEventArgs(SolutionState state)
-            {
-                State = state;
-            }
+            public StateEventArgs(SolutionState state) => State = state;
         }
 
-        private void OnStateEnter(SolutionState state)
-            => StateEnter?.Invoke(this, new StateEventArgs(state));
+        private void OnStateEnter(SolutionState state) => StateEnter?.Invoke(this, new StateEventArgs(state));
 
         public event EventHandler<StateEventArgs>? StateEnter;
 

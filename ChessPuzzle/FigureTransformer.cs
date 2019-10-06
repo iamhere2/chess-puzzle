@@ -56,39 +56,27 @@ namespace ChessPuzzle
             public static readonly FigureLinearTransitionComparer Instance = new FigureLinearTransitionComparer();
 
             public bool Equals(Figure a, Figure b)
-            {
-                var normCellsA = GetNormalizedCells(a);
-                var normCellsB = GetNormalizedCells(b);
-
-                return
-                    !normCellsA
-                    .Zip(normCellsB, (ca, cb) => ca.RelativePoint.Equals(cb.RelativePoint) && ca.Color == cb.Color)
-                    .Any(eq => !eq);
-            }
+                => GetNormalizedCells(a).SequenceEqual(GetNormalizedCells(b));
 
             public int GetHashCode(Figure f)
             {
-                var normCells = GetNormalizedCells(f);
-                return
-                    normCells.Aggregate(
-                        normCells.Count << 16,
-                        (hc, c) =>
-                            hc ^ c.RelativePoint.X << 8 ^ c.RelativePoint.Y << 1 + (int)c.Color);
+                var normCells = GetNormalizedCells(f).ToList();
+                var hash = new HashCode();
+
+                hash.Add(normCells.Count);
+
+                foreach (var c in normCells)
+                    hash.Add(c.GetHashCode());
+
+                return hash.ToHashCode();
             }
 
-            private static IList<FigureCell> GetNormalizedCells(Figure f)
+            private static IEnumerable<FigureCell> GetNormalizedCells(Figure f)
             {
-                int minX = f.Cells.Min(c => c.RelativePoint.X);
-                int minY = f.Cells.Min(c => c.RelativePoint.Y);
-
+                var minP = f.Cells.Select(c => c.RelativePoint).Min();
                 return
-                    f.Cells
-                    .Select(
-                        c => new FigureCell(
-                            Point.Of(c.RelativePoint.X - minX, c.RelativePoint.Y - minY),
-                            c.Color))
-                    .OrderBy(c => c, FigureCellComparer.Instance)
-                    .ToList();
+                    f.Cells.Select(c => c.Shift(-minP))
+                    .OrderBy(c => c, FigureCellComparer.Instance);
             }
 
             class FigureCellComparer : IComparer<FigureCell>
@@ -100,17 +88,11 @@ namespace ChessPuzzle
                     Ensure.Arg(cellA, nameof(cellA)).IsNotNull();
                     Ensure.Arg(cellB, nameof(cellB)).IsNotNull();
 
-                    int res = ((int)cellA.Color).CompareTo((int)cellB.Color);
-                    if (res == 0)
-                    {
-                        res = cellA.RelativePoint.Y.CompareTo(cellB.RelativePoint.Y);
-                        if (res == 0)
-                        {
-                            res = cellA.RelativePoint.X.CompareTo(cellB.RelativePoint.X);
-                        }
-                    }
+                    int colorDiff = ((int)cellA.Color).CompareTo((int)cellB.Color);
 
-                    return res;
+                    return colorDiff == 0
+                        ? cellA.RelativePoint.CompareTo(cellB.RelativePoint)
+                        : colorDiff;
                 }
             }
         }

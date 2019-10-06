@@ -10,6 +10,21 @@ namespace ChessPuzzle
         public const int Low = 1;
         public const int High = 8;
 
+        public static bool IsInRange(Point p) => p.X >= Low && p.X <= High && p.Y >= Low && p.Y <= High;
+
+        public static readonly Point[] AllPointsOrdered = CreateAllPointsOrdered().ToArray();
+
+        private static IEnumerable<Point> CreateAllPointsOrdered()
+        {
+            for (int y = Low; y <= High; y++)
+            {
+                for (int x = Low; x <= High; x++)
+                {
+                    yield return new Point(x, y);
+                }
+            }
+        }
+
         public struct Placement
         {
             public Figure Figure { get; }
@@ -27,45 +42,28 @@ namespace ChessPuzzle
                 Point = point;
             }
 
-            public Color? GetColor(Point point)
-            {
-                var figureCell = FindFigureCell(point);
-                return figureCell == null ? (Color?)null : figureCell.Color;
-            }
+            public Color? GetColor(Point point) => FindFigureCell(point)?.Color;
 
-            private FigureCell FindFigureCell(Point point)
+            private FigureCell? FindFigureCell(Point point)
             {
                 var placementPoint = Point;
-                return
-                    Figure.Cells.FirstOrDefault(
-                        c =>
-                            point.X == placementPoint.X + c.RelativePoint.X &&
-                            point.Y == placementPoint.Y + c.RelativePoint.Y);
+                return Figure.Cells.FirstOrNull(c => point == c.RelativePoint.Shift(placementPoint));
             }
 
             public IEnumerable<Point> GetCellPoints()
             {
                 var placementPoint = Point;
-                return
-                    Figure.Cells.Select(
-                        c => Point.Of(
-                            placementPoint.X + c.RelativePoint.X,
-                            placementPoint.Y + c.RelativePoint.Y));
+                return Figure.Cells.Select(c => c.RelativePoint.Shift(placementPoint));
             }
         }
 
-        public bool HasCell(Point p)
-        {
-            if (_hasCellCache == null)
-            {
-                _hasCellCache = new HashSet<Point>(
-                    Figures.SelectMany(placement => placement.GetCellPoints()));
-            }
+        public Point? FindFirstFreePoint() => AllPointsOrdered.Except(OccupiedPoints)?.Min();
 
-            return _hasCellCache.Contains(p);
-        }
+        public bool HasCell(Point p) => OccupiedPoints.Contains(p);
 
-        private HashSet<Point>? _hasCellCache = null;
+        private HashSet<Point> OccupiedPoints => _occupiedPointsLazy.Value;
+
+        private readonly Lazy<HashSet<Point>> _occupiedPointsLazy;
 
         public IEnumerable<Placement> Figures { get; private set; }
 
@@ -73,43 +71,30 @@ namespace ChessPuzzle
         {
             Ensure.Arg(figure, nameof(figure)).IsNotNull();
 
-            foreach (var fc in figure.Cells)
-            {
-                var rp = fc.RelativePoint;
-
-                int x = point.X + rp.X;
-                if (x < Low || x > High)
-                    return false;
-
-                int y = point.Y + rp.Y;
-                if (y < Low || y > High)
-                    return false;
-
-                if (HasCell(Point.Of(x, y)))
-                    return false;
-            }
-
-            return true;
+            return
+                figure.Cells.All(fc =>
+                    {
+                        var p = fc.RelativePoint.Shift(point);
+                        return IsInRange(p) && !HasCell(p);
+                    });
         }
 
         public bool IsValidPlacement(Figure figure, Point point)
         {
             Ensure.Arg(figure, nameof(figure)).IsNotNull();
+            Color? oddColor = OddCellsColor;
 
-            if (!IsPossiblePlacement(figure, point))
-                return false;
-
-            Color? oddColor = GetOddCellsColor();
-
-            if (!oddColor.HasValue)
-                return true;
-
-            Color placementOddColor = CalculateOddCellsColor(point, figure.ColorOfOriginCell);
-
-            return placementOddColor == oddColor.Value;
+            return
+                IsPossiblePlacement(figure, point)
+                && (
+                       oddColor == null
+                    || CalculateOddCellsColor(point, figure.ColorOfOriginCell) == oddColor);
         }
 
-        public Color? GetOddCellsColor()
+        private Color? OddCellsColor => _oddCellsColorLazy.Value;
+        private readonly Lazy<Color?> _oddCellsColorLazy;
+
+        public Color? CalcOddCellsColor()
         {
             if (!Figures.Any())
                 return null;
@@ -124,9 +109,6 @@ namespace ChessPuzzle
 
         private static Color CalculateOddCellsColor(Point probePoint, Color probeColor)
             => probePoint.IsOdd ? probeColor : probeColor.GetInverted();
-
-        public Color? GetColor(Point point)
-            => GetPointInfo(point).Color;
 
         public PointInfo GetPointInfo(Point point)
         {
@@ -159,6 +141,12 @@ namespace ChessPuzzle
         {
             Ensure.Arg(figures, nameof(figures)).IsNotNull();
             Figures = figures;
+
+            _occupiedPointsLazy = new Lazy<HashSet<Point>>(
+                () => new HashSet<Point>(Figures.SelectMany(placement => placement.GetCellPoints())),
+                isThreadSafe: false);
+
+            _oddCellsColorLazy = new Lazy<Color?>(CalcOddCellsColor, isThreadSafe: false);
         }
 
         public struct PointInfo
