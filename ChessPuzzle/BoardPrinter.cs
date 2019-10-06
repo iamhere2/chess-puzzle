@@ -15,7 +15,7 @@ namespace ChessPuzzle
                 {
                     Print(board.GetPointInfo(point));
 
-                    if (point.X == Board.High)
+                    if (point.X == Board.HIGH)
                         Console.WriteLine();
                 }
             });

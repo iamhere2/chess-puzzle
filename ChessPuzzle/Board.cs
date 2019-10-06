@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,19 +9,20 @@ namespace ChessPuzzle
 {
     class Board
     {
-        public const int Low = 1;
-        public const int High = 8;
+        public const int LOW = 1;
+        public const int HIGH = 8;
+        public const int WIDTH = HIGH - LOW + 1;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsInRange(Point p) => p.X >= Low && p.X <= High && p.Y >= Low && p.Y <= High;
+        public static bool IsInRange(Point p) => p.X >= LOW && p.X <= HIGH && p.Y >= LOW && p.Y <= HIGH;
 
         public static readonly Point[] AllPointsOrdered = CreateAllPointsOrdered().ToArray();
 
         private static IEnumerable<Point> CreateAllPointsOrdered()
         {
-            for (int y = Low; y <= High; y++)
+            for (int y = LOW; y <= HIGH; y++)
             {
-                for (int x = Low; x <= High; x++)
+                for (int x = LOW; x <= HIGH; x++)
                 {
                     yield return new Point(x, y);
                 }
@@ -59,13 +61,50 @@ namespace ChessPuzzle
             }
         }
 
-        public Point? FindFirstFreePoint() => AllPointsOrdered.Except(OccupiedPoints)?.Min();
+        private Board(IEnumerable<Placement> figures)
+        {
+            Ensure.Arg(figures, nameof(figures)).IsNotNull();
+            Figures = figures;
 
-        public bool HasCell(Point p) => OccupiedPoints.Contains(p);
+            //_occupiedPointsLazy = new Lazy<HashSet<Point>>(
+            //    () => new HashSet<Point>(Figures.SelectMany(placement => placement.GetCellPoints())),
+            //    isThreadSafe: false);
 
-        private HashSet<Point> OccupiedPoints => _occupiedPointsLazy.Value;
+            _pointsMapLazy = new Lazy<BitArray>(() => 
+                {
+                    var bits = new BitArray(WIDTH * WIDTH, false);
 
-        private readonly Lazy<HashSet<Point>> _occupiedPointsLazy;
+                    foreach (var point in Figures.SelectMany(placement => placement.GetCellPoints()))
+                        bits.Set(GetPointMapIndex(point), true);
+
+                    return bits;
+                },
+                isThreadSafe: false);
+
+            _oddCellsColorLazy = new Lazy<Color?>(CalcOddCellsColor, isThreadSafe: false);
+        }
+
+        #region Points map
+
+        // public bool HasCell(Point p) => OccupiedPoints.Contains(p);
+
+        // private HashSet<Point> OccupiedPoints => _occupiedPointsLazy.Value;
+
+        // private readonly Lazy<HashSet<Point>> _occupiedPointsLazy;
+
+        private readonly Lazy<BitArray> _pointsMapLazy;
+
+        private BitArray PointsMap => _pointsMapLazy.Value;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetPointMapIndex(Point p) => (p.Y - LOW) * WIDTH + (p.X - LOW);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool HasCell(Point p) => PointsMap.Get(GetPointMapIndex(p));
+
+        #endregion
+
+        public Point? FindFirstFreePoint() => AllPointsOrdered.FirstOrNull(p => !HasCell(p));
 
         public IEnumerable<Placement> Figures { get; private set; }
 
@@ -137,18 +176,6 @@ namespace ChessPuzzle
 
             return new Board(
                 prev.Figures.Concat(new[] { new Placement(figure, point, prev.Figures.Count() + 1) }));
-        }
-
-        private Board(IEnumerable<Placement> figures)
-        {
-            Ensure.Arg(figures, nameof(figures)).IsNotNull();
-            Figures = figures;
-
-            _occupiedPointsLazy = new Lazy<HashSet<Point>>(
-                () => new HashSet<Point>(Figures.SelectMany(placement => placement.GetCellPoints())),
-                isThreadSafe: false);
-
-            _oddCellsColorLazy = new Lazy<Color?>(CalcOddCellsColor, isThreadSafe: false);
         }
 
         public struct PointInfo

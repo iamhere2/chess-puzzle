@@ -5,6 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ChessPuzzle
 {
+    class CompileSymbols
+    {
+        public const string DEBUG = "DEBUG";
+    }
+
+
     public class AssertException : Exception
     {
         private const string DEFAULT_MESSAGE = "Unexpected internal program state";
@@ -39,7 +45,7 @@ namespace ChessPuzzle
 
     class Assert
     {
-        [Conditional("DEBUG")]
+        [Conditional(CompileSymbols.DEBUG)]
         public static void That([DoesNotReturnIf(false)] bool condition)
         {
             if (!condition)
@@ -58,13 +64,14 @@ namespace ChessPuzzle
             ArgValue = value;
         }
 
+        [Conditional(CompileSymbols.DEBUG)]
         private void EnsureIsNotNull([AllowNull]T value) =>
             EnsureCondition(value != null, Throw.ArgumentNullException);
 
-        [Conditional("DEBUG")]
+        [Conditional(CompileSymbols.DEBUG)]
         public void IsNotNull() => EnsureIsNotNull(ArgValue);
 
-        [Conditional("DEBUG")]
+        [Conditional(CompileSymbols.DEBUG)]
         public void IsNotNullOrEmpty()
         {
             IsNotNull();
@@ -73,6 +80,7 @@ namespace ChessPuzzle
                 Throw.ArgumentOutOfRangeException);
         }
 
+        [Conditional(CompileSymbols.DEBUG)]
         private void EnsureCondition([DoesNotReturnIf(false)] bool condition, Action<string> argThrower)
         {
             if (!condition)
