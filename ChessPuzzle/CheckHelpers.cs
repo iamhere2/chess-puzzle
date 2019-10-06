@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ChessPuzzle
@@ -38,6 +39,7 @@ namespace ChessPuzzle
 
     class Assert
     {
+        [Conditional("DEBUG")]
         public static void That([DoesNotReturnIf(false)] bool condition)
         {
             if (!condition)
@@ -59,8 +61,10 @@ namespace ChessPuzzle
         private void EnsureIsNotNull([AllowNull]T value) =>
             EnsureCondition(value != null, Throw.ArgumentNullException);
 
+        [Conditional("DEBUG")]
         public void IsNotNull() => EnsureIsNotNull(ArgValue);
 
+        [Conditional("DEBUG")]
         public void IsNotNullOrEmpty()
         {
             IsNotNull();

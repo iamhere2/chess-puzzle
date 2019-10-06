@@ -4,6 +4,8 @@ namespace ChessPuzzle
 {
     class Program
     {
+        static readonly TimeSpan PRINT_INTERVAL = TimeSpan.FromSeconds(5);
+
         static void Main() => SolvePuzzle();
 
         private static void SolvePuzzle()
@@ -33,15 +35,27 @@ namespace ChessPuzzle
 
             long stateCounter = 0;
             DateTime startTime = DateTime.Now;
+            DateTime prevPrintTime = default;
+
             r.StateEnter +=
                 (sender, args) =>
                     {
                         stateCounter++;
-                        if (stateCounter % 10000 == 0)
+                        if ((stateCounter & ((2 << 10) - 1)) == 1) // Проверка каждые 1024 ~= 1000 состояний
                         {
-                            Console.Clear();
-                            Console.WriteLine("State № {0:##,###,###}, time:{1}", stateCounter, DateTime.Now - startTime);
-                            BoardPrinter.Print(args.State.Board);
+                            var now = DateTime.Now;
+                            if (now - prevPrintTime > PRINT_INTERVAL)
+                            {
+                                var elapsed = now - startTime;
+
+                                Console.Clear();
+                                Console.WriteLine("State № {0:###,###,###}:", stateCounter);
+                                BoardPrinter.Print(args.State.Board);
+                                Console.WriteLine("Total elapsed time: {0:hh\\:mm\\:ss\\.fff}", elapsed);
+                                Console.WriteLine("Avarage speed: {0} states/sec.", Math.Round(stateCounter / elapsed.TotalSeconds, 2));
+
+                                prevPrintTime = now;
+                            }
                         }
                     };
 

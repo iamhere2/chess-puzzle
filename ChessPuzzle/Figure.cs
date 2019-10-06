@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ChessPuzzle
 {
@@ -38,6 +39,7 @@ namespace ChessPuzzle
                 .ToList();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Color CalculateColor(Color colorOfOriginCell, Point relativePoint) =>
             relativePoint.IsOdd ? colorOfOriginCell.GetInverted() : colorOfOriginCell;
     }

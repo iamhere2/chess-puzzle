@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace ChessPuzzle
 {
@@ -10,6 +11,7 @@ namespace ChessPuzzle
         public const int Low = 1;
         public const int High = 8;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsInRange(Point p) => p.X >= Low && p.X <= High && p.Y >= Low && p.Y <= High;
 
         public static readonly Point[] AllPointsOrdered = CreateAllPointsOrdered().ToArray();
