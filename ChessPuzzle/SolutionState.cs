@@ -110,14 +110,19 @@ namespace ChessPuzzle
                     // Расчитываем точку расположения для совмещения пробной клетки с целевой точкой
                     var placementPoint = targetPoint.Shift(-cell.RelativePoint);
 
-                    // Если это допустимое расположение - то добавляем в список решений, иначе - идем дальше
-                    if (Board.IsValidPlacement(transformedFigure, placementPoint))
-                    {
-                        Assert.That(PossibleDecisions != null);
-                        PossibleDecisions.Enqueue(
-                            new Decision(selectedFigure: figure, transformedFigure, placementPoint));
-                    }
+                    // Если это допустимое расположение - то добавляем в список решений
+                    TryPlaceFigureTransformation(figure, transformedFigure, placementPoint);
                 }
+            }
+        }
+
+        private void TryPlaceFigureTransformation(Figure figure, Figure transformedFigure, Point placementPoint)
+        {
+            if (Board.IsValidPlacement(transformedFigure, placementPoint))
+            {
+                Assert.That(PossibleDecisions != null);
+                PossibleDecisions.Enqueue(
+                    new Decision(selectedFigure: figure, transformedFigure, placementPoint));
             }
         }
     }
