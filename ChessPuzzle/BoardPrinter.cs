@@ -29,7 +29,13 @@ namespace ChessPuzzle
 
         private static void SetColors(Color? color)
         {
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = color switch
+            {
+                Color.White => ConsoleColor.DarkGray,
+                Color.Black => ConsoleColor.Gray,
+                _ => ConsoleColor.DarkGray
+            };
+
             Console.BackgroundColor = color switch
             {
                 Color.White => ConsoleColor.White,

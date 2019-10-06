@@ -67,35 +67,24 @@ namespace ChessPuzzle
             Ensure.Arg(figures, nameof(figures)).IsNotNull();
             Figures = figures;
 
-            //_occupiedPointsLazy = new Lazy<HashSet<Point>>(
-            //    () => new HashSet<Point>(Figures.SelectMany(placement => placement.GetCellPoints())),
-            //    isThreadSafe: false);
-
-            _pointsMapLazy = new Lazy<BitArray>(() => 
-                {
-                    var bits = new BitArray(WIDTH * WIDTH, false);
-
-                    foreach (var point in Figures.SelectMany(placement => placement.GetCellPoints()))
-                        bits.Set(GetPointMapIndex(point), true);
-
-                    return bits;
-                },
-                isThreadSafe: false);
-
-            _oddCellsColorLazy = new Lazy<Color?>(CalcOddCellsColor, isThreadSafe: false);
+            PointsMap = CalcPointsMap();
+            OddCellsColor = CalcOddCellsColor();
         }
+
 
         #region Points map
 
-        // public bool HasCell(Point p) => OccupiedPoints.Contains(p);
+        private BitArray PointsMap { get; }
 
-        // private HashSet<Point> OccupiedPoints => _occupiedPointsLazy.Value;
+        private BitArray CalcPointsMap()
+        {
+            var bits = new BitArray(WIDTH * WIDTH, false);
 
-        // private readonly Lazy<HashSet<Point>> _occupiedPointsLazy;
+            foreach (var point in Figures.SelectMany(placement => placement.GetCellPoints()))
+                bits.Set(GetPointMapIndex(point), true);
 
-        private readonly Lazy<BitArray> _pointsMapLazy;
-
-        private BitArray PointsMap => _pointsMapLazy.Value;
+            return bits;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetPointMapIndex(Point p) => (p.Y - LOW) * WIDTH + (p.X - LOW);
@@ -142,10 +131,9 @@ namespace ChessPuzzle
                     || CalculateOddCellsColor(point, figure.ColorOfOriginCell) == oddColor);
         }
 
-        private Color? OddCellsColor => _oddCellsColorLazy.Value;
-        private readonly Lazy<Color?> _oddCellsColorLazy;
+        private Color? OddCellsColor { get; }
 
-        public Color? CalcOddCellsColor()
+        private Color? CalcOddCellsColor()
         {
             if (!Figures.Any())
                 return null;
