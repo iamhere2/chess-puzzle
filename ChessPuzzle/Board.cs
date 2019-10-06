@@ -62,13 +62,30 @@ namespace ChessPuzzle
             }
         }
 
-        private Board(IEnumerable<Placement> figures)
+        private Board(ICollection<Placement> figures)
         {
             Ensure.Arg(figures, nameof(figures)).IsNotNull();
             Figures = figures;
 
             PointsMap = CalcPointsMap();
             OddCellsColor = CalcOddCellsColor();
+        }
+
+        private Board(Board prevBoard, Figure newFigure, Point newFigurePlacementPoint)
+        {
+            if (!prevBoard.IsValidPlacement(newFigure, newFigurePlacementPoint))
+                throw new ArgumentException("Invalid or impossible placement");
+
+            var newPlacement = new Placement(newFigure, newFigurePlacementPoint, prevBoard.Figures.Count + 1);
+
+            var figures = new List<Placement>(prevBoard.Figures) { newPlacement };
+            Figures = figures;
+          
+            OddCellsColor = prevBoard.OddCellsColor ?? CalcOddCellsColor();
+
+            PointsMap = new BitArray(prevBoard.PointsMap);
+            foreach (var point in newPlacement.GetCellPoints())
+                PointsMap.Set(GetPointMapIndex(point), true);
         }
 
 
@@ -105,7 +122,7 @@ namespace ChessPuzzle
             return null;
         }
 
-        public IEnumerable<Placement> Figures { get; private set; }
+        public ICollection<Placement> Figures { get; private set; }
 
         public bool IsPossiblePlacement(Figure figure, Point point)
         {
@@ -169,11 +186,7 @@ namespace ChessPuzzle
             Ensure.Arg(prev, nameof(prev)).IsNotNull();
             Ensure.Arg(figure, nameof(figure)).IsNotNull();
 
-            if (!prev.IsValidPlacement(figure, point))
-                throw new ArgumentException("Invalid or impossible placement");
-
-            return new Board(
-                prev.Figures.Concat(new[] { new Placement(figure, point, prev.Figures.Count() + 1) }));
+            return new Board(prev, figure, point);
         }
 
         public struct PointInfo
