@@ -15,61 +15,96 @@ namespace ChessPuzzle
 
         public SolutionState? FinalState { get; set; }
 
+        private SolutionState? CurrentState { get; set; }
+
         public bool SearchSolution(SolutionState initialState)
         {
             Ensure.Arg(initialState, nameof(initialState)).IsNotNull();
 
-            ClearStates();
+            Reset();
 
-            if (initialState.IsFinal)
-            {
-                FinalState = initialState;
-                return true;
-            }
+            // Берем начальное состояние за текущее
+            CurrentState = initialState;
 
-            // Берем начальное состояние
-            var currentState = initialState;
-
+            // Бежим по дереву состояний, пока не найдем или оно не кончится
             while (true)
             {
-                // Мы пришли или вернулись на некоторое состояние
-                OnStateEnter(currentState);
+                // Мы пришли или вернулись на некоторое состояние,
+                // надо его проверить и оповестить, а если оно конечное - то все
+                if (CheckCurrentState())
+                    return true;
 
-                // Убедимся, что действия уже были рассчитаны или рассчитаем их
-                currentState.EnsureDecisionsCalculated();
+                // Если не конечное - идем по дереву, если еще есть куда
+                if (!ProceedToNextState())
+                    return false;
+            }
+        }
 
-                var possibleDecisions = currentState.PossibleDecisions;
-                Assert.That(possibleDecisions != null);
+        private bool ProceedToNextState()
+        {
+            // Берем очередное нерассмотренное действие в текущем состоянии, если есть
+            var nextDecision = GetNextDecisionIfAny();
+            if (nextDecision == null)
+            {
+                // Нету. На этом состоянии больше делать нечего
+                // Возвращаемся, если есть куда
+                return ProceedBackward();
+            }
+            else
+            {
+                // Есть нерассмотренное действие - значит, переодим к новому состоянию
+                ProceedForward(nextDecision);
+                return true;
+            }
+        }
 
-                // Есть ли еще нерассмотренные варианты действий?);
-                if (possibleDecisions.Any())
-                {
-                    // Берем очередное действие, вычеркивая из списка
-                    var decision = possibleDecisions.Dequeue();
+        private SolutionState.Decision? GetNextDecisionIfAny()
+        {
+            Assert.That(CurrentState != null);
+            return CurrentState.GetNextDecisionIfAny();
+        }
 
-                    // Рассчитываем состояние после действия
-                    var nextState = currentState.CreateNextState(decision);
+        private void ProceedForward(SolutionState.Decision nextDecision)
+        {
+            Assert.That(CurrentState != null);
 
-                    // Если состояние конечное - то выходим, решение найдено
-                    if (nextState.IsFinal)
-                    {
-                        FinalState = nextState;
-                        return true;
-                    }
+            // Добавляем текущее состояние в стек
+            States.Push(CurrentState);
 
-                    // Не конечное - тогда добавляем текущее состояние в стек,
-                    // переходим к новому состоянию и рассчитываем действия для него
-                    States.Push(currentState);
-                    currentState = nextState;
-                }
-                else
-                {
-                    // На этом состоянии больше делать нечего - возвращаемся или признаем, что решения нет
-                    if (States.Any())
-                        currentState = States.Pop();
-                    else
-                        return false;
-                }
+            // Рассчитываем новое состояние после действия и переходим к нему
+            CurrentState = CurrentState.CreateNextState(nextDecision);
+        }
+
+        private bool ProceedBackward()
+        {
+            if (States.Any())
+            {
+                // Есть куда возвращаться
+                CurrentState = States.Pop();
+                return true;
+            }
+            else
+            {
+                // Некуда возвращаться, решения нет
+                return false;
+            }
+        }
+
+        private bool CheckCurrentState()
+        {
+            Assert.That(CurrentState != null);
+
+            OnStateEnter(CurrentState);
+
+            // Если текущее состояние конечное - то запишем его и сообщим, что решение найдено
+            if (CurrentState.IsFinal)
+            {
+                FinalState = CurrentState;
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -84,7 +119,7 @@ namespace ChessPuzzle
 
         public event EventHandler<StateEventArgs>? StateEnter;
 
-        private void ClearStates()
+        private void Reset()
         {
             States.Clear();
             FinalState = null;

@@ -73,6 +73,14 @@ namespace ChessPuzzle
             }
         }
 
+        public Decision? GetNextDecisionIfAny()
+        {
+            EnsureDecisionsCalculated();
+            Decision? res = null;
+            PossibleDecisions?.TryDequeue(out res);
+            return res;
+        }
+
         private void CalculateDecisions()
         {
             PossibleDecisions = new Queue<Decision>();
