@@ -48,10 +48,11 @@ namespace ChessPuzzle
 
             public Color? GetColor(Point point) => FindFigureCell(point)?.Color;
 
-            private FigureCell? FindFigureCell(Point point)
+            private FigureCell? FindFigureCell(Point checkPoint)
             {
                 var placementPoint = Point;
-                return Figure.Cells.FirstOrNull(c => point == c.RelativePoint.Shift(placementPoint));
+                var shiftedCheckPoint = checkPoint.Shift(-placementPoint);
+                return Figure.Cells.FirstOrNull(c => shiftedCheckPoint == c.RelativePoint);
             }
 
             public IEnumerable<Point> GetCellPoints()
@@ -104,7 +105,16 @@ namespace ChessPuzzle
 
         #endregion
 
-        public Point? FindFirstFreePoint() => AllPointsOrdered.FirstOrNull(p => !HasCell(p));
+        public Point? FindFirstFreePoint()
+        {
+            for (int i = 0; i < PointsMap.Length; i++)
+            {
+                if (!PointsMap.Get(i))
+                    return AllPointsOrdered[i];
+            }
+
+            return null;
+        }
 
         public IEnumerable<Placement> Figures { get; private set; }
 
