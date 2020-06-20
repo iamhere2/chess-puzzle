@@ -17,20 +17,20 @@ type Cube =
     }
 
     /// Возвращает кубик с тем же цветом, но со сдвигом
-    member c.Shift (dx, dy) = Cube.At(Shift (dx, dy) c.Position, c.Color)
+    member inline c.Shift (dx, dy) = Cube.At(Shift (dx, dy) c.Position, c.Color)
 
     /// Проверяет, что кубик находится на указанных координатах
-    member c.IsAt (x, y) = c.Position.IsAt(x, y)
+    member inline c.IsAt (x, y) = c.Position.IsAt(x, y)
 
     /// Создает кубик из координат и цвета 
-    static member At(x, y, c) = Cube.At(PointAt(x, y), c)
+    static member inline At(x, y, c) = Cube.At(PointAt(x, y), c)
 
     /// Создает кубик из точки и цвета 
-    static member At(p, c) = { Position = p; Color = c }
+    static member inline At(p, c) = { Position = p; Color = c }
 
 
 /// Функция вытаскивает из кубика его координаты в виде точки
-let PositionOf (c: Cube) = c.Position
+let inline PositionOf (c: Cube) = c.Position
 
 
 
