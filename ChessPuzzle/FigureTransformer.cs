@@ -55,8 +55,10 @@ namespace ChessPuzzle
         {
             public static readonly FigureLinearTransitionComparer Instance = new FigureLinearTransitionComparer();
 
-            public bool Equals(Figure a, Figure b)
-                => GetNormalizedCells(a).SequenceEqual(GetNormalizedCells(b));
+            public bool Equals(Figure? a, Figure? b)
+                => (a is null) && (b is null) 
+                || (a != null && b != null &&
+                    GetNormalizedCells(a).SequenceEqual(GetNormalizedCells(b)));
 
             public int GetHashCode(Figure f)
             {
