@@ -10,24 +10,22 @@ namespace ChessPuzzle
 
         private static void SolvePuzzle()
         {
-            var figures =
-                new[]
-                    {
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(3,0), Point.Of(4,0)),
-                        new Figure(Color.White, Point.Of(1,0), Point.Of(1,1), Point.Of(0,1)),
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(0,1), Point.Of(-1,0), Point.Of(0,-1)),
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(3,0), Point.Of(3,1)),
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(1,1), Point.Of(0,1), Point.Of(2,0)),
-                        new Figure(Color.White, Point.Of(1,0), Point.Of(-1,0), Point.Of(1,1), Point.Of(-1,1)),
-                        new Figure(Color.White, Point.Of(0,1), Point.Of(0,2), Point.Of(1,2), Point.Of(-1,2)),
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(3,1)),
-                        new Figure(Color.Black, Point.Of(1,0), Point.Of(1,1), Point.Of(2,1), Point.Of(2,2)),
-                        new Figure(Color.Black, Point.Of(-1,1), Point.Of(0,1), Point.Of(1,1), Point.Of(1,2)),
-                        new Figure(Color.White, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(2,2)),
-                        new Figure(Color.White, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(3,0)),
-
-                        new Figure(Color.Black, Point.Of(0,1), Point.Of(0,2), Point.Of(1,2), Point.Of(-1,2)),
-                    };
+            var figures = new[]
+                {
+                    new Figure(Color.White, Point.Of(1,0), Point.Of(1,1), Point.Of(0,1)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(0,1), Point.Of(-1,0), Point.Of(0,-1)),
+                    new Figure(Color.White, Point.Of(1,0), Point.Of(2,0), Point.Of(3,0), Point.Of(3,1)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(1,1), Point.Of(0,1), Point.Of(2,0)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(-1,0), Point.Of(1,1), Point.Of(-1,1)),
+                    new Figure(Color.White, Point.Of(0,1), Point.Of(0,2), Point.Of(1,2), Point.Of(-1,2)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(3,1)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(1,1), Point.Of(2,1), Point.Of(2,2)),
+                    new Figure(Color.Black, Point.Of(-1,1), Point.Of(0,1), Point.Of(1,1), Point.Of(1,2)),
+                    new Figure(Color.White, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(2,2)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(2,1), Point.Of(3,0)),
+                    new Figure(Color.White, Point.Of(1,0), Point.Of(1,1), Point.Of(1,2), Point.Of(2,2)),
+                    new Figure(Color.Black, Point.Of(1,0), Point.Of(2,0), Point.Of(3,0), Point.Of(4,0)),
+                };
 
             var initialState = SolutionState.CreateInitial(figures);
 
